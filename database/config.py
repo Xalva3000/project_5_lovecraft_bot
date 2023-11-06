@@ -9,8 +9,8 @@ class Settings:
     def __init__(self, path):
         env = Env()
         env.read_env(path)
-        self.DB_USER = env("DB_USER")
         self.DB_NETLOC = env("DB_NETLOC")
+        self.DB_USER = env("DB_USER")
         self.DB_NAME = env("DB_NAME")
         self.DB_PASS = env("DB_PASS")
         self.DB_PORT = env("DB_PORT")
@@ -20,4 +20,4 @@ class Settings:
         return url
 
 
-settings = Settings("C:\i\project_3_SQL\.env")
+settings = Settings("/home/kabbot/kabbot/project_5_kabbot/.env"")
