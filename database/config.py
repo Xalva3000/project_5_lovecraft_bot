@@ -1,4 +1,5 @@
 from environs import Env
+from os import name as os_name
 
 
 class Settings:
@@ -20,6 +21,7 @@ class Settings:
         return url
 
 
-settings = Settings("C:\i\project_5_kabbot\.env")
-
-# Settings("/home/kabbot/kabbot/project_5_kabbot/.env")
+if os_name == 'nt':
+    settings = Settings(r"C:\i\project_5_kabbot\.env")
+elif os_name == 'posix':
+    settings = Settings("/home/kabbot/kabbot/project_5_kabbot/.env")
