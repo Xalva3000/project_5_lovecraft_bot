@@ -20,10 +20,19 @@ LEXICON_default: dict[str, str] = {
     /add_excerpt - предложить отрывок
     /play_dict - игра "Словарь" 
     /add_term" - добавить термин в словарь
+    /urls - полезные ссылки
     """,
     "unknown": """Неизвестная команда.""",
     "cancel-denied": "Пока нечего отменять",
     "Cancel": "Возврат к начальной области команд",
+    "urls": """Полезные ссылки:
+            Прямая аудио трансляция ББ, русская
+            https://icecast.kab.tv/live1-rus-574bcfd5.mp3
+            Прямая аудио трансляция ББ, english
+            http://icecast.kab.tv/live1-eng-574bcfd5.mp3
+            Словарь из игры:
+            http://www.kabbalah.info/rus/content/view/full/59550
+            """,
     "my_info": ('Ваш прогресс:', 'Всего ответов:', 'Правильные ответы:', 'Неверные ответы:')
 }
 
@@ -78,15 +87,16 @@ LEXICON_bookmarks: dict[str, str] = {
 
 
 LEXICON_COMMANDS: dict[str, str] = {
-    "/start": "Регистрация",
+    "/start": "регистрация",
     "/help": "список команд",
-    "/my_info": "Прогресс в игре словарь",
+    "/my_info": "прогресс в игре словарь",
     "/read_book": 'Читать "Молитва и Намерение"',
     "/bookmarks": "список закладок",
     "/random_excerpt": "случайный отрывок",
     "/add_excerpt": "предложить отрывок",
     "/read_top_excerpts": "читать популярный отрывки",
-    "/play_dict": 'Игра "Словарь"',
+    "/play_dict": 'игра "Словарь"',
     "/add_term": "добавить термин в словарь",
     "/cancel": "отмена, выход из области команд",
+    "/urls": "полезные ссылки"
 }

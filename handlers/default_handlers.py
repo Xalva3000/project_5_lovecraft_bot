@@ -50,3 +50,7 @@ async def process_cancel_message(message: Message):
         f"{tpl[2]} {user.right_answers}\n"
         f"{tpl[3]} {user.wrong_answers}"
     )
+
+@router.message(Command(commands=['urls']))
+async def process_urls_command(message: Message):
+    await message.answer(text=LEXICON_default['urls'])
