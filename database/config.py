@@ -21,6 +21,7 @@ class Settings:
         return url
 
 
+
 if os_name == 'nt':
     settings = Settings(r"C:\i\project_5_kabbot\.env")
 elif os_name == 'posix':
