@@ -11,7 +11,6 @@ from filters.filters import (IsNextTopExcerpt, IsRating, IsTTSExcerpts,
                              IsTTSTopExcerpts)
 from keyboards.rating_kb import create_rating_keyboard
 from keyboards.topexcerpts_kb import create_topexcerpts_keyboard
-from lexicon.lexicon import LEXICON, LEXICON_RU
 from states.bot_states import FSMStates
 from tts.tts import text_to_speech
 

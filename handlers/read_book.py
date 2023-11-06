@@ -9,11 +9,26 @@ from database.queries import AsyncQuery
 from filters.filters import IsPage, IsRatio, IsTTSBook
 
 from keyboards.pagination_kb import create_pagination_keyboard
-from lexicon.lexicon import LEXICON, LEXICON_RU, LEXICON_reading_book
+from lexicon.lexicon import LEXICON_reading_book,LEXICON_bookmarks
 from states.bot_states import FSMStates
 from tts.tts import text_to_speech
 
 router = Router()
+
+
+@router.message(Command(commands=["help"]), StateFilter(FSMStates.reading_book))
+async def process_help_reading_book_command(message: Message):
+    await message.answer(text=LEXICON_reading_book["help"])
+
+
+@router.message(Command(commands=["read_book", "continue"]))
+async def process_read_book_default_state(message: Message, state: FSMContext):
+    await state.set_state(FSMStates.reading_book)
+    page = await AsyncQuery.select_user_book_page(message.from_user.id)
+    tpl_page = await AsyncQuery.select_book_page(page)
+    await message.answer(
+        text=tpl_page[0], reply_markup=create_pagination_keyboard(page, tpl_page[1])
+    )
 
 
 # Хендлер нажатия кнопки отмены. Удаление клавиатуры и сообщения с текстом
@@ -96,9 +111,9 @@ async def process_page_press(callback: CallbackQuery, state: FSMContext):
     if len(all_pages) <= 10:
         page = await AsyncQuery.select_user_book_page(callback.from_user.id)
         await AsyncQuery.insert_bookmark(callback.from_user.id, page)
-        await callback.answer(LEXICON_reading_book["add_bookmark"])
+        await callback.answer(LEXICON_bookmarks["add_bookmark"])
     else:
-        await callback.answer(LEXICON_reading_book["bookmark_limit"])
+        await callback.answer(LEXICON_bookmarks["bookmark_limit"])
 
 
 # Хендлер срабатывает на нажатие кнопки озвучивания фрагмента,
