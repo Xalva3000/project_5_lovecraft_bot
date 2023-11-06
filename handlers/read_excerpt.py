@@ -48,6 +48,18 @@ async def process_cancel_adding_excerpt(message: Message, state: FSMContext):
     await state.clear()
 
 
+@router.callback_query(F.data.startswith('skip_excerpt_'))
+async def process_next_excerpt_button(callback: CallbackQuery, state: FSMContext):
+    await state.set_state(FSMStates.reading_excerpts)
+    previous_excerpt = callback.data.replace('skip_excerpt_', '')
+    tpl_text = await AsyncQuery.select_random_excerpt(int(previous_excerpt))
+    if tpl_text:
+        await callback.message.edit_text(
+            text=tpl_text[0] + f"\n\n...добавил: {tpl_text[2]}",
+            reply_markup=create_rating_keyboard(tpl_text[1]),
+        )
+
+
 @router.message(
     Command(commands=["random_excerpt", "отрывок"]), StateFilter(default_state)
 )
