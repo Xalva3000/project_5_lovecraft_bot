@@ -5,10 +5,8 @@ from aiogram.fsm.state import default_state
 from aiogram.types import Message
 
 from database.queries import AsyncQuery
-from keyboards.bookmarks_kb import create_bookmarks_keyboard
-from keyboards.pagination_kb import create_pagination_keyboard
 from lexicon.lexicon import LEXICON_default
-from states.bot_states import FSMStates
+
 
 router = Router()
 

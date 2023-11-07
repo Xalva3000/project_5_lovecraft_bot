@@ -13,6 +13,7 @@ from keyboards.rating_kb import create_rating_keyboard
 from keyboards.topexcerpts_kb import create_topexcerpts_keyboard
 from states.bot_states import FSMStates
 from tts.tts import text_to_speech
+from lexicon.lexicon import LEXICON_excerpts
 
 router = Router()
 
@@ -32,18 +33,17 @@ async def process_close_excerpts(callback: CallbackQuery, state: FSMContext):
 
 
 @router.message(
-    Command(commands=["cancel", "отмена"]), StateFilter(FSMStates.reading_excerpts)
-)
+    Command(commands=["cancel"]), StateFilter(FSMStates.reading_excerpts))
 async def process_cancel_excerpt(message: Message, state: FSMContext):
-    await message.answer(text="Отмена области команд работы с отрывками")
+    await message.answer(text=LEXICON_excerpts["exit_excerpts"])
     await state.clear()
 
 
 @router.message(
-    Command(commands=["cancel", "отмена"]), StateFilter(FSMStates.adding_excerpt)
+    Command(commands=["cancel"]), StateFilter(FSMStates.adding_excerpt)
 )
 async def process_cancel_adding_excerpt(message: Message, state: FSMContext):
-    await message.answer(text="Ввод отменен")
+    await message.answer(text=LEXICON_excerpts["cancel_adding_excerpt"])
     await state.clear()
 
 
@@ -54,27 +54,24 @@ async def process_next_excerpt_button(callback: CallbackQuery, state: FSMContext
     tpl_text = await AsyncQuery.select_random_excerpt(int(previous_excerpt))
     if tpl_text:
         await callback.message.edit_text(
-            text=tpl_text[0] + f"\n\n...добавил: {tpl_text[2]}",
+            text=tpl_text[0] + f'\n\n{LEXICON_excerpts["added_by"]} {tpl_text[2]}',
             reply_markup=create_rating_keyboard(tpl_text[1]),
         )
 
 
 @router.message(
-    Command(commands=["random_excerpt", "отрывок"]), StateFilter(default_state)
-)
+    Command(commands=["random_excerpt"]), StateFilter(default_state))
 async def process_random_excerpt(message: Message, state: FSMContext):
     await state.set_state(FSMStates.reading_excerpts)
     # запрос кортежа (текст, порядковый номер, имя добавившего)
     tpl_text = await AsyncQuery.select_random_excerpt()
     if tpl_text:
         await message.answer(
-            text=tpl_text[0] + f"\n\n...добавил: {tpl_text[2]}",
-            reply_markup=create_rating_keyboard(tpl_text[1]),
-        )
+            text=tpl_text[0] + f'\n\n{LEXICON_excerpts["added_by"]} {tpl_text[2]}',
+            reply_markup=create_rating_keyboard(tpl_text[1]))
     else:
         await message.answer(
-            text="Список отрывков пуст. Добавьте отрывок командой /offer_excerpt"
-        )
+            text=LEXICON_excerpts["no_excerpts"])
 
 
 @router.message(Command(commands=["read_top_excerpts"]))
@@ -96,9 +93,8 @@ async def process_rating_button(callback: CallbackQuery):
     tpl_text = await AsyncQuery.select_random_excerpt(int(command[1]))
     if tpl_text:
         await callback.message.edit_text(
-            text=tpl_text[0] + f"\n\n...добавил: {tpl_text[2]}",
-            reply_markup=create_rating_keyboard(tpl_text[1]),
-        )
+            text=tpl_text[0] + f'\n\n{LEXICON_excerpts["added_by"]} {tpl_text[2]}',
+            reply_markup=create_rating_keyboard(tpl_text[1]))
 
 
 @router.callback_query(IsTTSExcerpts(), StateFilter(FSMStates.reading_excerpts))
@@ -125,15 +121,10 @@ async def process_voice_top_excerpts(callback: CallbackQuery, bot: Bot):
         await bot.send_audio(callback.message.chat.id, audio=audio)
 
 
-@router.message(
-    Command(commands=["предложить_отрывок", "add_excerpt"]), StateFilter(default_state)
-)
+@router.message(Command(commands=["add_excerpt"]))
 async def process_offer_excerpt(message: Message, state: FSMContext):
     await state.set_state(FSMStates.adding_excerpt)
-    await message.answer(
-        text="Введите целиком отрывок, которым хотите поделиться.\n"
-        "/cancel - отмена ввода"
-    )
+    await message.answer(text=LEXICON_excerpts["add_excerpt"])
 
 
 @router.callback_query(IsNextTopExcerpt(), StateFilter(FSMStates.reading_excerpts))
@@ -156,9 +147,9 @@ async def process_add_excerpt(message: Message, state: FSMContext):
         await AsyncQuery.insert_user_excerpt(message.text, message.from_user.first_name)
     except Exception as e:
         print(e)
-        await message.answer(text="Ошибка при добавлении отрывка")
+        await message.answer(text=LEXICON_excerpts["adding_error"])
     else:
-        await message.answer(text="Отрывок добавлен")
+        await message.answer(text=LEXICON_excerpts["adding_success"])
     finally:
         await state.clear()
 
@@ -166,4 +157,4 @@ async def process_add_excerpt(message: Message, state: FSMContext):
 @router.callback_query(F.data.startswith("report_excerpt_"))
 async def process_report_excerpt_button(callback: CallbackQuery):
     await AsyncQuery.insert_questionable_excerpt(callback.data)
-    await callback.answer("Отрывок отправлен на проверку")
+    await callback.answer(text=LEXICON_excerpts["report_excerpt"])

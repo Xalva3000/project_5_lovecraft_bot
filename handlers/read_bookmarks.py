@@ -1,8 +1,7 @@
 from aiogram import F, Router
 from aiogram.filters import Command, StateFilter
 from aiogram.fsm.context import FSMContext
-from aiogram.fsm.state import default_state
-from aiogram.types import CallbackQuery, FSInputFile, Message
+from aiogram.types import CallbackQuery, Message
 
 from database.queries import AsyncQuery
 from filters.filters import (IsDelBookmarkCallbackData, IsDigitCallbackData)
@@ -11,7 +10,6 @@ from keyboards.bookmarks_kb import (create_bookmarks_keyboard,
 from keyboards.pagination_kb import create_pagination_keyboard
 from lexicon.lexicon import LEXICON_bookmarks
 from states.bot_states import FSMStates
-from tts.tts import text_to_speech
 
 router = Router()
 
