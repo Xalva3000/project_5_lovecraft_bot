@@ -10,6 +10,7 @@ from keyboards.dictionary_kb import (create_dictionary_answer_keyboard,
                                      create_dictionary_keyboard)
 from lexicon.lexicon import LEXICON_dict
 from states.bot_states import FSMStates
+from services.cashing import load_answers
 
 router = Router()
 
@@ -35,7 +36,7 @@ async def process_close_dict_button(callback: CallbackQuery, state: FSMContext):
 @router.message(Command(commands=["play_dict", "словарь"]))
 async def process_play_dictionary(message: Message, state: FSMContext):
     await state.set_state(FSMStates.play_dict)
-    text = await AsyncQuery.load_answers(message.from_user.id)
+    text = await load_answers(message.from_user.id)
     await message.answer(
         text=text, reply_markup=create_dictionary_keyboard(message.from_user.id)
     )
@@ -45,7 +46,7 @@ async def process_play_dictionary(message: Message, state: FSMContext):
 async def process_close_dict_button(callback: CallbackQuery, state: FSMContext):
     await state.set_state(FSMStates.play_dict)
     user_id = callback.from_user.id
-    text = await AsyncQuery.load_answers(user_id)
+    text = await load_answers(user_id)
     await callback.message.edit_text(
         text=text, reply_markup=create_dictionary_keyboard(user_id)
     )

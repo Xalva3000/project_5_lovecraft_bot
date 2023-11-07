@@ -14,6 +14,7 @@ from keyboards.topexcerpts_kb import create_topexcerpts_keyboard
 from states.bot_states import FSMStates
 from tts.tts import text_to_speech
 from lexicon.lexicon import LEXICON_excerpts
+from services.cashing import load_top_excerpts
 
 router = Router()
 
@@ -57,15 +58,17 @@ async def process_next_excerpt_button(callback: CallbackQuery, state: FSMContext
             text=tpl_text[0] + f'\n\n{LEXICON_excerpts["added_by"]} {tpl_text[2]}',
             reply_markup=create_rating_keyboard(tpl_text[1]),
         )
+    else:
+        await callback.answer(text=LEXICON_excerpts["only_one_excerpt"])
 
 
 @router.message(
     Command(commands=["random_excerpt"]), StateFilter(default_state))
 async def process_random_excerpt(message: Message, state: FSMContext):
-    await state.set_state(FSMStates.reading_excerpts)
     # запрос кортежа (текст, порядковый номер, имя добавившего)
     tpl_text = await AsyncQuery.select_random_excerpt()
     if tpl_text:
+        await state.set_state(FSMStates.reading_excerpts)
         await message.answer(
             text=tpl_text[0] + f'\n\n{LEXICON_excerpts["added_by"]} {tpl_text[2]}',
             reply_markup=create_rating_keyboard(tpl_text[1]))
@@ -76,25 +79,30 @@ async def process_random_excerpt(message: Message, state: FSMContext):
 
 @router.message(Command(commands=["read_top_excerpts"]))
 async def process_read_excerpts(message: Message, state: FSMContext):
-    await state.set_state(FSMStates.reading_excerpts)
-    await AsyncQuery.load_top_excerpts()
-    await message.answer(
-        text=usertextcache[0], reply_markup=create_topexcerpts_keyboard(0)
-    )
+    await load_top_excerpts()
+    if usertextcache:
+        await state.set_state(FSMStates.reading_excerpts)
+        await message.answer(
+            text=usertextcache[0], reply_markup=create_topexcerpts_keyboard(0)
+        )
+    else:
+        await message.answer(text=LEXICON_excerpts["no_excerpts"])
 
 
 @router.callback_query(IsRating(), StateFilter(FSMStates.reading_excerpts))
 async def process_rating_button(callback: CallbackQuery):
+    """Принимает команду на повышение или понижение (up_#) рейтинга
+    определенного отрывка"""
     command = callback.data.split("_")
-    if command[0] == "up":
-        await AsyncQuery.update_excerpt_rating(int(command[1]), "up")
-    elif command[0] == "down":
-        await AsyncQuery.update_excerpt_rating(int(command[1]), "down")
+    await AsyncQuery.update_excerpt_rating(int(command[1]), command[0])
+
     tpl_text = await AsyncQuery.select_random_excerpt(int(command[1]))
     if tpl_text:
         await callback.message.edit_text(
             text=tpl_text[0] + f'\n\n{LEXICON_excerpts["added_by"]} {tpl_text[2]}',
             reply_markup=create_rating_keyboard(tpl_text[1]))
+    else:
+        await callback.answer(text=LEXICON_excerpts["mark_accepted"])
 
 
 @router.callback_query(IsTTSExcerpts(), StateFilter(FSMStates.reading_excerpts))
@@ -133,12 +141,17 @@ async def process_next_top_excerpt_button(callback: CallbackQuery, state: FSMCon
         pass
     else:
         await state.set_state(FSMStates.reading_excerpts)
-    next_pos = (int(callback.data.replace("next_", "")) + 1) % 3
-    await AsyncQuery.load_top_excerpts()
-    await callback.message.edit_text(
-        text=usertextcache[next_pos], reply_markup=create_topexcerpts_keyboard(next_pos)
-    )
-    await callback.answer()
+    await load_top_excerpts()
+
+    pos = int(callback.data.replace("next_", ""))
+    if len(usertextcache) > 1:
+        next_pos = (pos + 1) % len(usertextcache) if len(usertextcache) == 2 else (pos + 1) % 3
+        await callback.message.edit_text(
+            text=usertextcache[next_pos], reply_markup=create_topexcerpts_keyboard(next_pos)
+        )
+        await callback.answer()
+    else:
+        await callback.answer(text=LEXICON_excerpts["only_one_excerpt"])
 
 
 @router.message(StateFilter(FSMStates.adding_excerpt))

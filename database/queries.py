@@ -1,16 +1,16 @@
-from random import choice, randint, sample
+from random import choice
 from typing import Iterable
 
 from sqlalchemy import delete, select
 from sqlalchemy.sql.expression import func
 
-from database.database import MinBookOrm  # sync_session
+from database.database import MinBookOrm
 from database.database import (KabDictionary, MinFragments, Questionable,
                                UserBookmarksOrm, UsersOrm, UserTextOrm,
                                async_session)
-from database.temporary_info import usersdictplaycache, usertextcache
+from database.temporary_info import usersdictplaycache
 
-"""Файл для хранения запросов асинхронных запросов"""
+"""Файл для хранения асинхронных запросов"""
 
 
 class AsyncQuery:
@@ -161,15 +161,29 @@ class AsyncQuery:
             session.add(UserTextOrm(excerpt=text, user_name=name))
             await session.commit()
 
+    # @staticmethod
+    # async def test():
+    #     async with async_session() as session:
+    #         stmt = select(UserTextOrm.id)
+    #         lst_temp = await session.execute(stmt)
+    #         return lst_temp.scalars().all()
+
     @staticmethod
-    async def select_random_excerpt(previous_num=None) -> tuple:
+    async def select_random_excerpt(previous_num=None) -> tuple | None:
+        """Возвращает случайный отрывок, за исключением предыдущего,
+        если предыдущий имеется"""
         async with async_session() as session:
             random_num = previous_num
+
             stmt = select(UserTextOrm.id)
             lst_temp = await session.execute(stmt)
             all_excerpts = lst_temp.scalars().all()
-            if not all_excerpts:
+            # если в базе ни одного отрывка или один то возвращаем None
+            if (len(all_excerpts) == 0 or
+                    (previous_num and len(all_excerpts) == 1)):
                 return None
+
+            # если имеется предыдущее число
             if previous_num:
                 while random_num == previous_num:
                     random_num = choice(all_excerpts)
@@ -181,10 +195,8 @@ class AsyncQuery:
     @staticmethod
     async def insert_kabdict_definitions(kabdct):
         async with async_session() as session:
-            # count = 1
             for word, definition in kabdct.items():
                 session.add(KabDictionary(word=word, definition=definition))
-                # count += 1
             await session.commit()
 
     @staticmethod
@@ -204,43 +216,25 @@ class AsyncQuery:
             await session.commit()
 
     @staticmethod
-    async def load_top_excerpts():
+    async def select_top_excerpts():
         async with async_session() as session:
             stmt = select(UserTextOrm).order_by(UserTextOrm.rating).limit(3)
-            result = await session.execute(stmt)
-            all_excerpts = result.scalars().all()
-            if all_excerpts:
-                for i, obj in enumerate(all_excerpts):
-                    usertextcache[i] = obj.excerpt
-
-    @staticmethod
-    async def select_length_dictionary():
-        async with async_session() as session:
-            stmt = select(func.count(KabDictionary.id))
-            result = await session.execute(stmt)
-            return result.scalar()
-
-    @staticmethod
-    async def select_several_terms(lst: list[int]):
-        async with async_session() as session:
-            stmt = select(KabDictionary).where(KabDictionary.id.in_(lst))
             result = await session.execute(stmt)
             return result.scalars().all()
 
     @staticmethod
-    async def load_answers(user_id: int) -> None:
-        length = await AsyncQuery.select_length_dictionary()
-        objects = await AsyncQuery.select_several_terms(sample(range(1, length + 1), 4))
-        random_num = randint(0, 3)
-        usersdictplaycache[user_id] = {
-            "current_data": (objects[random_num].word, objects[random_num].definition)
-        }
-        for i, obj in enumerate(objects):
-            if i == random_num:
-                usersdictplaycache[user_id][i] = (obj.word, "right")
-            else:
-                usersdictplaycache[user_id][i] = (obj.word, "wrong")
-        return objects[random_num].definition
+    async def select_all_dict_ids():
+        async with async_session() as session:
+            stmt = select(KabDictionary.id)
+            result = await session.execute(stmt)
+            return result.scalars().all()
+
+    @staticmethod
+    async def select_specific_terms(lst: list[int]):
+        async with async_session() as session:
+            stmt = select(KabDictionary).where(KabDictionary.id.in_(lst))
+            result = await session.execute(stmt)
+            return result.scalars().all()
 
     @staticmethod
     async def insert_term(term_tpl):
