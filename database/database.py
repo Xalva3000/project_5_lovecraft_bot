@@ -85,15 +85,16 @@ class KabDictionary(Base):
     __tablename__ = "kabdictionary"
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    word: Mapped[str] = mapped_column(String(64))
-    definition: Mapped[str] = mapped_column(Text)
+    term: Mapped[str] = mapped_column(String(64), nullable=False)
+    translation: Mapped[str] = mapped_column(String(64), nullable=True)
+    definition: Mapped[str] = mapped_column(Text, nullable=False)
 
 
 class Questionable(Base):
     __tablename__ = "questionable"
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    object: Mapped[str] = mapped_column(Text)
+    object: Mapped[str] = mapped_column(Text, nullable=False)
     # note: Mapped[str] = mapped_column(Text)
 
 

@@ -193,11 +193,33 @@ class AsyncQuery:
             return result.excerpt, result.id, result.user_name
 
     @staticmethod
-    async def insert_kabdict_definitions(kabdct):
+    async def insert_kabdict_definition(dct):
+        """Добавляет в словарь строку: термин, перевод, объяснение"""
         async with async_session() as session:
-            for word, definition in kabdct.items():
-                session.add(KabDictionary(word=word, definition=definition))
+            for term, translation, definition in dct.values():
+                session.add(KabDictionary(term=term,
+                                          translation=translation,
+                                          definition=definition
+                                          ))
             await session.commit()
+
+    @staticmethod
+    async def insert_term(term_tpl):
+        async with async_session() as session:
+            term, translation, definition = term_tpl
+            session.add(KabDictionary(term=term,
+                                      translation=translation,
+                                      definition=definition
+                                      ))
+            await session.commit()
+
+
+    @staticmethod
+    async def select_all_dict_ids():
+        async with async_session() as session:
+            stmt = select(KabDictionary.id)
+            result = await session.execute(stmt)
+            return result.scalars().all()
 
     @staticmethod
     async def select_excerpt(excerpt_id):
@@ -222,12 +244,6 @@ class AsyncQuery:
             result = await session.execute(stmt)
             return result.scalars().all()
 
-    @staticmethod
-    async def select_all_dict_ids():
-        async with async_session() as session:
-            stmt = select(KabDictionary.id)
-            result = await session.execute(stmt)
-            return result.scalars().all()
 
     @staticmethod
     async def select_specific_terms(lst: list[int]):
@@ -236,13 +252,7 @@ class AsyncQuery:
             result = await session.execute(stmt)
             return result.scalars().all()
 
-    @staticmethod
-    async def insert_term(term_tpl):
-        async with async_session() as session:
-            print(term_tpl)
-            word, definition = term_tpl
-            session.add(KabDictionary(word=word, definition=definition))
-            await session.commit()
+
 
     @staticmethod
     async def insert_questionable_dct(user_id):

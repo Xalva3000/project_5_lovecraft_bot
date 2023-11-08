@@ -37,9 +37,12 @@ async def process_close_dict_button(callback: CallbackQuery, state: FSMContext):
 async def process_play_dictionary(message: Message, state: FSMContext):
     await state.set_state(FSMStates.play_dict)
     text = await load_answers(message.from_user.id)
-    await message.answer(
-        text=text, reply_markup=create_dictionary_keyboard(message.from_user.id)
-    )
+    if text is None:
+        await message.answer(text=LEXICON_dict["need_more_terms"])
+    else:
+        await message.answer(
+            text=text, reply_markup=create_dictionary_keyboard(message.from_user.id)
+        )
 
 
 @router.callback_query(F.data == "next_question")
@@ -65,8 +68,9 @@ async def process_dictionary_answer(callback: CallbackQuery, state: FSMContext):
         await callback.answer(text=LEXICON_dict["user_right_answer"])
         await AsyncQuery.update_users_right_answer(user_id)
     text = (
-        f"<b>{LEXICON_dict['system_right_answer'][0]}</b>\n{dct['current_data'][0].capitalize()}"
+        f"<b>{LEXICON_dict['system_right_answer'][0]}</b>\n{dct['current_data'][0]}"
         f"\n\n<b>{LEXICON_dict['system_right_answer'][1]}</b>\n{dct['current_data'][1]}"
+        f"\n\n<b>{LEXICON_dict['system_right_answer'][2]}</b>\n{dct['current_data'][2]}"
     )
     await callback.message.edit_text(
         text=text, reply_markup=create_dictionary_answer_keyboard()

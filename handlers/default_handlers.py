@@ -15,9 +15,10 @@ router = Router()
 async def process_start_message(message: Message, state: FSMContext):
     await state.clear()
     await message.answer(
-        text=f"{LEXICON_default['greeting']} {message.from_user.first_name}!"
+        text=f"{LEXICON_default['greeting'][0]} {message.from_user.first_name}!"
     )
-    await message.answer(text=LEXICON_default["greeting-con"])
+    await message.answer(text=LEXICON_default['greeting'][1])
+    await message.answer(text=LEXICON_default['greeting'][2])
     if await AsyncQuery.select_user(message.from_user.id) is None:
         await AsyncQuery.insert_user(message.from_user.id, message.from_user.first_name)
 
@@ -38,7 +39,7 @@ async def process_cancel_message(message: Message, state: FSMContext):
     await message.answer(text=LEXICON_default["Cancel"])
 
 
-@router.message(Command(commands=["my_info"]), StateFilter(default_state))
+@router.message(Command(commands=["my_info"]))
 async def process_cancel_message(message: Message):
     user = await AsyncQuery.select_user(message.from_user.id)
     tpl = LEXICON_default["my_info"]

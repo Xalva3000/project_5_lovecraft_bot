@@ -10,17 +10,13 @@ def create_dictionary_keyboard(user_id) -> InlineKeyboardMarkup:
     kb_builder.row(InlineKeyboardButton(text="✖", callback_data="close_dct"))
     kb_builder.row(
         *[
-            InlineKeyboardButton(
-                text=f"{dct[i][0].capitalize()}", callback_data=f"answer-{i}"
-            )
+            InlineKeyboardButton(text=f"{dct[i][0]}", callback_data=f"answer-{i}")
             for i in range(0, 2)
         ]
     )
     kb_builder.row(
         *[
-            InlineKeyboardButton(
-                text=f"{dct[i][0].capitalize()}", callback_data=f"answer-{i}"
-            )
+            InlineKeyboardButton(text=f"{dct[i][0]}", callback_data=f"answer-{i}")
             for i in range(2, 4)
         ]
     )
