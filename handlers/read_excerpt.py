@@ -63,7 +63,7 @@ async def process_next_excerpt_button(callback: CallbackQuery, state: FSMContext
 
 
 @router.message(
-    Command(commands=["random_excerpt"]), StateFilter(default_state))
+    Command(commands=["random_excerpt"]))
 async def process_random_excerpt(message: Message, state: FSMContext):
     # запрос кортежа (текст, порядковый номер, имя добавившего)
     tpl_text = await AsyncQuery.select_random_excerpt()
