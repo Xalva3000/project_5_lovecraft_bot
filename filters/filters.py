@@ -14,6 +14,16 @@ class IsPage(BaseFilter):
         return False
 
 
+class IsChapter(BaseFilter):
+    async def __call__(self, message: Message) -> bool:
+        if not isinstance(message.text, str):
+            return False
+        match_obj = fullmatch(r"/фраг (\d{1,3})", message.text)
+        if match_obj and int(match_obj.group(1)) in range(1, 151):
+            return True
+        return False
+
+
 class IsRatio(BaseFilter):
     async def __call__(self, callback: CallbackQuery) -> bool:
         if not isinstance(callback.data, str):

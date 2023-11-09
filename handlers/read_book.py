@@ -5,10 +5,10 @@ from aiogram.types import CallbackQuery, FSInputFile, Message
 from aiogram.utils.chat_action import ChatActionSender
 
 from database.queries import AsyncQuery
-from filters.filters import IsPage, IsRatio, IsTTSBook
+from filters.filters import IsPage, IsChapter, IsRatio, IsTTSBook
 
 from keyboards.pagination_kb import create_pagination_keyboard
-from lexicon.lexicon import LEXICON_reading_book,LEXICON_bookmarks
+from lexicon.lexicon import LEXICON_reading_book, LEXICON_bookmarks
 from states.bot_states import FSMStates
 from tts.tts import text_to_speech
 
@@ -40,7 +40,7 @@ async def process_cancel_press(callback: CallbackQuery, state: FSMContext):
 
 # Хендлер отмены
 @router.message(
-    Command(commands=["cancel", "отмена"]), StateFilter(FSMStates.reading_book)
+    Command(commands=["cancel"]), StateFilter(FSMStates.reading_book)
 )
 async def process_cancel_message(message: Message, state: FSMContext):
     await message.answer(text=LEXICON_reading_book["cancel"])
@@ -50,10 +50,22 @@ async def process_cancel_message(message: Message, state: FSMContext):
 # Хендлер срабатывает на строку типа '/стр {page_num}'
 # парсит номер страницы, собирает информацию страницы из ДБ
 # передает текст страницы и клавиатуру чтения книги
-@router.message(IsPage(), StateFilter(FSMStates.reading_book))
+@router.message(IsPage())
 async def process_bookmark_press(message: Message, state: FSMContext) -> None:
     await state.set_state(FSMStates.reading_book)
     page = int(message.text.replace("/стр ", ""))
+    await AsyncQuery.update_users_book_page(message.from_user.id, page)
+    tpl_page = await AsyncQuery.select_book_page(page)
+    await message.answer(
+        text=tpl_page[0], reply_markup=create_pagination_keyboard(page, tpl_page[1])
+    )
+
+
+@router.message(IsChapter())
+async def process_open_page_where_chapter_id(message: Message, state: FSMContext) -> None:
+    chapter_id = int(message.text.replace("/фраг ", ""))
+    await state.set_state(FSMStates.reading_book)
+    page = await AsyncQuery.select_page_of_chapter(chapter_id)
     await AsyncQuery.update_users_book_page(message.from_user.id, page)
     tpl_page = await AsyncQuery.select_book_page(page)
     await message.answer(

@@ -20,7 +20,7 @@ def create_bookmarks_keyboard(dct) -> InlineKeyboardMarkup:
         InlineKeyboardButton(
             text=LEXICON_bookmarks["edit_bookmarks_button"], callback_data="edit_bookmarks"
         ),
-        InlineKeyboardButton(text=LEXICON_bookmarks["cancel"], callback_data="cancel_bookmarks"),
+        InlineKeyboardButton(text=LEXICON_bookmarks["cancel_button"], callback_data="cancel_bookmarks"),
         width=2,
     )
     return kb_builder.as_markup()
@@ -33,14 +33,14 @@ def create_edit_keyboard(dct) -> InlineKeyboardMarkup:
     for button in sorted(dct):
         kb_builder.row(
             InlineKeyboardButton(
-                text=f'{LEXICON_bookmarks["del"]} {button} - {dct[button][:40]}',
+                text=f'{LEXICON_bookmarks["del_button"]} {button} - {dct[button][:40]}',
                 callback_data=f"{button}del",
             )
         )
     # Добавляем в конец клавиатуры кнопку "Отменить"
     kb_builder.row(
         InlineKeyboardButton(
-            text=LEXICON_bookmarks["cancel"], callback_data="cancel-bookmarks-edit"
+            text=LEXICON_bookmarks["cancel_button"], callback_data="cancel-bookmarks-edit"
         )
     )
     return kb_builder.as_markup()

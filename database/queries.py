@@ -156,17 +156,18 @@ class AsyncQuery:
             return result.fragment_id
 
     @staticmethod
+    async def select_page_of_chapter(chapter_id):
+        async with async_session() as session:
+            stmt = select(func.min(MinBookOrm.page_id)).where(MinBookOrm.fragment_id == chapter_id)
+            result = await session.execute(stmt)
+            return result.scalar()
+
+    @staticmethod
     async def insert_user_excerpt(text, name):
         async with async_session() as session:
             session.add(UserTextOrm(excerpt=text, user_name=name))
             await session.commit()
 
-    # @staticmethod
-    # async def test():
-    #     async with async_session() as session:
-    #         stmt = select(UserTextOrm.id)
-    #         lst_temp = await session.execute(stmt)
-    #         return lst_temp.scalars().all()
 
     @staticmethod
     async def select_random_excerpt(previous_num=None) -> tuple | None:
