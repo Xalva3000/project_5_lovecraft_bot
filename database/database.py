@@ -26,7 +26,7 @@ class UsersOrm(Base):
 
     user_id: Mapped[int] = mapped_column(BigInteger, primary_key=True, nullable=False)
     name: Mapped[str] = mapped_column(VARCHAR(32), nullable=True)
-    current_dict_page: Mapped[int] = mapped_column(default=0)
+    # current_dict_page: Mapped[int] = mapped_column(default=0)
     current_mn_page: Mapped[int] = mapped_column(default=0)
     answers: Mapped[int] = mapped_column(default=0)
     right_answers: Mapped[int] = mapped_column(default=0)

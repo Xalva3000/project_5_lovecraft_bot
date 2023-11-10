@@ -5,7 +5,6 @@ from aiogram import Bot, Dispatcher
 from aiogram.fsm.storage.memory import MemoryStorage
 
 from config.config import load_config
-from database.database import create_tables
 from handlers import (default_handlers, other_handlers, play_dict, read_book,
                       read_bookmarks, read_excerpt)
 from keyboards.main_menu import set_main_menu
@@ -17,25 +16,27 @@ from aiogram.fsm.storage.redis import RedisStorage
 
 
 async def main():
+    # инициализация логирования и конфига бота
     logging.basicConfig(level=logging.DEBUG)
     config = load_config()
 
-    create_tables()
-    storage = MemoryStorage()
+    # create_tables()  # функция создания таблиц ненужна пока используется alembic
 
-    # redis = Redis()
-    bot = Bot(token=config.tg_bot.token, parse_mode="HTML")
-    # dp = Dispatcher(storage=RedisStorage(redis=redis))
-    dp = Dispatcher(storage=storage)
+    # инициализация кэширования
+    storage = MemoryStorage()
     storage_throttling = RedisStorage.from_url('redis://localhost:6379/0')
 
+    # инициализация бота и диспетчера
+    bot = Bot(token=config.tg_bot.token, parse_mode="HTML")
+    dp = Dispatcher(storage=storage)
 
+    # установка кнопки меню
     await set_main_menu(bot)
-
+    # очередь middleware
     dp.message.middleware(Throttling(storage=storage_throttling))
     dp.message.outer_middleware(OnlyStringMessage())
 
-
+    # очередь хендлеров
     dp.include_router(default_handlers.router)
     dp.include_router(read_book.router)
     dp.include_router(read_excerpt.router)
