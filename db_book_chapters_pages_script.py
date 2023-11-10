@@ -72,7 +72,7 @@ def prepare_fragmented_book(fragmented_book: list, dct: dict, page_size):
 
 PAGE_SIZE = 1050
 book = {}
-book_path = "books/MIN.txt"
+book_path = "books/book.txt"
 book_name = ""
 
 
