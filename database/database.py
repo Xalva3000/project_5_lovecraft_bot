@@ -47,11 +47,13 @@ class UserBookmarksOrm(Base):
     __tablename__ = "userbookmarks"
 
     id: Mapped[int] = mapped_column(
-        primary_key=True, nullable=False, autoincrement=True
-    )
+        primary_key=True,
+        nullable=False,
+        autoincrement=True)
     user_id: Mapped[int] = mapped_column(
-        BigInteger, ForeignKey("users.user_id"), nullable=False
-    )
+        BigInteger,
+        ForeignKey("users.user_id"),
+        nullable=False)
     page: Mapped[int] = mapped_column(nullable=False)
 
 

@@ -1,5 +1,5 @@
 from random import choice
-from typing import Iterable
+from typing import Iterable, Optional
 
 from sqlalchemy import delete, select
 from sqlalchemy.sql.expression import func
@@ -16,6 +16,8 @@ from database.temporary_info import usersdictplaycache
 class AsyncQuery:
     @staticmethod
     async def insert_user(u_id: int, name: str):
+        """INSERT INTO users (user_id, name)
+        VALUES ({u_id},{name});"""
         async with async_session() as session:
             if isinstance(u_id, int) and isinstance(name, str | None):
                 session.add(UsersOrm(user_id=u_id, name=name))
@@ -24,19 +26,28 @@ class AsyncQuery:
                 return "wrong data types"
 
     @staticmethod
-    async def select_user(u_id: int):
+    async def select_user(u_id: int) -> Optional[UsersOrm]:
+        """SELECT *
+        FROM users
+        WHERE user_id = {u_id}"""
         async with async_session() as session:
             result = await session.get(UsersOrm, u_id)
             return result
 
     @staticmethod
     async def select_user_book_page(u_id: int):
+        """SELECT current_mn_page
+        FROM users
+        WHERE user_id = {u_id}"""
         async with async_session() as session:
             result = await session.get(UsersOrm, u_id)
             return result.current_mn_page
 
     @staticmethod
     async def update_users_book_page(u_id: int, new_page: str | int = "forward"):
+        """UPDATE users
+        SET current_mn_page = {new_page or +- 1}
+        WHERE user_id = {u_id}"""
         async with async_session() as session:
             user = await session.get(UsersOrm, u_id)
             if new_page == "forward":
@@ -50,6 +61,7 @@ class AsyncQuery:
     @staticmethod
     async def update_users_kabdict_page(u_id, new_page: str | int = "forward"):
         async with async_session() as session:
+            """UPDATE users"""
             user = await session.get(UsersOrm, u_id)
             if new_page == "forward":
                 user.current_dict_page += 1
