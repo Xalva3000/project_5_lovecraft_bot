@@ -20,9 +20,8 @@ router = Router()
 @router.message(Command(commands="bookmarks"))
 async def process_bookmarks_command(message: Message, state: FSMContext):
     await state.set_state(FSMStates.bookmarks_list)
-    bmarks = await AsyncQuery.select_users_bookmarks(message.from_user.id)
-    if bmarks:
-        pages = [bmark.page for bmark in bmarks]
+    pages = await AsyncQuery.select_users_bookmarks(message.from_user.id)
+    if pages:
         snippets = await AsyncQuery.select_book_page(pages)
         dct = {i.page_id: i.page_text[:40] for i in snippets}
         await message.answer(
@@ -44,9 +43,8 @@ async def process_cancel_press(callback: CallbackQuery, state: FSMContext):
 @router.callback_query(F.data == "cancel-bookmarks-edit")
 async def process_cancel_press(callback: CallbackQuery, state: FSMContext):
     await state.set_state(FSMStates.bookmarks_list)
-    bmarks = await AsyncQuery.select_users_bookmarks(callback.from_user.id)
-    if bmarks:
-        pages = [bmark.page for bmark in bmarks]
+    pages = await AsyncQuery.select_users_bookmarks(callback.from_user.id)
+    if pages:
         snippets = await AsyncQuery.select_book_page(pages)
         dct = {i.page_id: i.page_text[:40] for i in snippets}
         await callback.message.edit_text(
@@ -57,7 +55,7 @@ async def process_cancel_press(callback: CallbackQuery, state: FSMContext):
 
 
 @router.message(
-    Command(commands=["cancel", "отмена"]), StateFilter(FSMStates.bookmarks_list)
+    Command(commands=["cancel"]), StateFilter(FSMStates.bookmarks_list)
 )
 async def process_cancel_message(message: Message, state: FSMContext):
     await state.clear()
@@ -83,9 +81,8 @@ async def process_bookmark_press(callback: CallbackQuery, state: FSMContext):
 @router.callback_query(F.data == "edit_bookmarks")
 async def process_edit_press(callback: CallbackQuery, state: FSMContext):
     await state.set_state(FSMStates.edit_bookmarks)
-    bmarks = await AsyncQuery.select_users_bookmarks(callback.from_user.id)
-    if bmarks:
-        pages = [bmark.page for bmark in bmarks]
+    pages = await AsyncQuery.select_users_bookmarks(callback.from_user.id)
+    if pages:
         snippets = await AsyncQuery.select_book_page(pages)
         dct = {i.page_id: i.page_text[:40] for i in snippets}
     await callback.message.edit_text(
@@ -103,9 +100,8 @@ async def process_del_bookmark_press(callback: CallbackQuery):
     await AsyncQuery.delete_users_bookmark(
         callback.from_user.id, int(callback.data[:-3])
     )
-    bmarks = await AsyncQuery.select_users_bookmarks(callback.from_user.id)
-    if bmarks:
-        pages = [bmark.page for bmark in bmarks]
+    pages = await AsyncQuery.select_users_bookmarks(callback.from_user.id)
+    if pages:
         snippets = await AsyncQuery.select_book_page(pages)
         dct = {i.page_id: i.page_text[:40] for i in snippets}
         await callback.message.edit_text(

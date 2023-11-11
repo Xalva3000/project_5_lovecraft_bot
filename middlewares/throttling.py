@@ -18,6 +18,7 @@ class Throttling(BaseMiddleware):
             event: Message,
             data: Dict[str, Any],
     ) -> Any:
+
         user = f'user{event.from_user.id}'
 
         check_user = await self.storage.redis.get(name=user)

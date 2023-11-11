@@ -1,5 +1,6 @@
 import asyncio
 from pprint import pprint
+from database.database import create_tables
 
 from database.queries import AsyncQuery
 
@@ -21,12 +22,9 @@ for k, t, v in lst:
         print(k, t, v)
     dct[k] = (k, t, v)
 
-
 print(len(dct))
 
 async def insert():
     await AsyncQuery.insert_kabdict_definition(dct)
 
-
 asyncio.run(insert())
-
