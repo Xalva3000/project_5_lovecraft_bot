@@ -20,17 +20,17 @@ router = Router()
 
 
 @router.message(Command(commands=["menu"]))
-async def process_start_message(message: Message, state: FSMContext) -> None:
+async def process_menu_message(message: Message, state: FSMContext) -> None:
     await state.clear()
     user = await AsyncQuery.select_user(message.from_user.id)
     await message.answer(
-        text=f"{user.name}: 🍪({user.answers})",
+        text=f"<b>{user.name}</b> (🍪{user.answers}):",
         reply_markup=create_menu_keyboard()
     )
 
 
 @router.callback_query(F.data == '/read_book')
-async def process_read_book_default_state(callback: CallbackQuery, state: FSMContext):
+async def process_read_book_button(callback: CallbackQuery, state: FSMContext):
     await state.set_state(FSMStates.reading_book)
     page = await AsyncQuery.select_user_book_page(callback.from_user.id)
     tpl_page = await AsyncQuery.select_book_page(page)
@@ -40,7 +40,7 @@ async def process_read_book_default_state(callback: CallbackQuery, state: FSMCon
 
 
 @router.callback_query(F.data == "/play_dict")
-async def process_play_dictionary(callback: CallbackQuery, state: FSMContext):
+async def process_play_dictionary_button(callback: CallbackQuery, state: FSMContext):
     """Хендлер команды /play_dict. Загрузка определение из БД, если терминов в словаре достаточно,
     то устанавливается состояние игры Словарь, и собирается клавиатура из вариантов ответов."""
     text = await load_answers(callback.from_user.id)
@@ -54,7 +54,7 @@ async def process_play_dictionary(callback: CallbackQuery, state: FSMContext):
 
 
 @router.callback_query(F.data == "/add_term")
-async def process_add_term_message(callback: CallbackQuery, state: FSMContext):
+async def process_add_term_button(callback: CallbackQuery, state: FSMContext):
     """Хендлер команды /add_term. Устанавливает состояние добавление термина.
     Сообщает о том, что нужно вводить термин и в каком виде."""
     await state.set_state(FSMStates.adding_term)
@@ -62,7 +62,7 @@ async def process_add_term_message(callback: CallbackQuery, state: FSMContext):
 
 
 @router.callback_query(F.data == "/bookmarks")
-async def process_bookmarks_command(callback: CallbackQuery, state: FSMContext):
+async def process_bookmarks_button(callback: CallbackQuery, state: FSMContext):
     await state.set_state(FSMStates.bookmarks_list)
     pages = await AsyncQuery.select_users_bookmarks(callback.from_user.id)
     if pages:
@@ -76,7 +76,7 @@ async def process_bookmarks_command(callback: CallbackQuery, state: FSMContext):
 
 
 @router.callback_query(F.data == "/random_excerpt")
-async def process_random_excerpt(callback: CallbackQuery, state: FSMContext):
+async def process_random_excerpt_button(callback: CallbackQuery, state: FSMContext):
     # запрос кортежа (текст, порядковый номер, имя добавившего)
     tpl_text = await AsyncQuery.select_random_excerpt()
     if tpl_text:
@@ -90,7 +90,7 @@ async def process_random_excerpt(callback: CallbackQuery, state: FSMContext):
 
 
 @router.callback_query(F.data == "/read_top_excerpts")
-async def process_read_excerpts(callback: CallbackQuery, state: FSMContext):
+async def process_read_excerpts_button(callback: CallbackQuery, state: FSMContext):
     await load_top_excerpts()
     if usertextcache:
         await state.set_state(FSMStates.reading_excerpts)
@@ -102,13 +102,13 @@ async def process_read_excerpts(callback: CallbackQuery, state: FSMContext):
 
 
 @router.callback_query(F.data == "/add_excerpt")
-async def process_offer_excerpt(callback: CallbackQuery, state: FSMContext):
+async def process_offer_excerpt_button(callback: CallbackQuery, state: FSMContext):
     await state.set_state(FSMStates.adding_excerpt)
     await callback.message.edit_text(text=LEXICON_excerpts["add_excerpt"])
 
 
 @router.callback_query(F.data == "/my_info")
-async def process_info_message(callback: CallbackQuery) -> None:
+async def process_info_button(callback: CallbackQuery) -> None:
     """Хендлер команды /my_info. Присылает сообщение с данными статистики пользователя
     в игре 'Словарь'"""
     user = await AsyncQuery.select_user(callback.from_user.id)
@@ -122,7 +122,7 @@ async def process_info_message(callback: CallbackQuery) -> None:
 
 
 @router.callback_query(F.data == '/urls')
-async def process_urls_command(callback: CallbackQuery) -> None:
+async def process_urls_button(callback: CallbackQuery) -> None:
     """Хендлер команды /urls. Присылает сообщение с указанием ссылок
     на полезные ресурсы по тематике бота"""
     await callback.message.edit_text(text=LEXICON_default['urls'])

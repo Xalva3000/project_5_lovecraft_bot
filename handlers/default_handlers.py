@@ -6,7 +6,7 @@ from aiogram.types import Message
 
 from database.queries import AsyncQuery
 from lexicon.lexicon import LEXICON_default
-from keyboards.menu_kb import create_menu_keyboard
+from handlers.menu_handlers import process_menu_message
 
 
 router = Router()
@@ -15,18 +15,16 @@ router = Router()
 @router.message(Command(commands=["start"]))
 async def process_start_message(message: Message, state: FSMContext) -> None:
     """Хендлер команды /start, сбрасывает состояние, отсылает информационные сообщения,
-    аутентификация пользователя. Если пользователь остутствует в БД, то создает
+    аутентификация пользователя. Если пользователь отсутствует в БД, то создает
     строку в таблице users с начальным значениями для этого пользователя."""
     await state.clear()
     await message.answer(
         text=f"{LEXICON_default['greeting'][0]} {message.from_user.first_name}!"
     )
     await message.answer(text=LEXICON_default['greeting'][1])
-    await message.answer(text=LEXICON_default['greeting'][2])
+    await process_menu_message(message, state)
     if await AsyncQuery.select_user(message.from_user.id) is None:
         await AsyncQuery.insert_user(message.from_user.id, message.from_user.first_name)
-
-
 
 
 @router.message(Command(commands=["help"]), StateFilter(default_state))
@@ -61,6 +59,7 @@ async def process_info_message(message: Message) -> None:
         f"{tpl[2]} {user.right_answers}\n"
         f"{tpl[3]} {user.wrong_answers}"
     )
+
 
 @router.message(Command(commands=['urls']))
 async def process_urls_command(message: Message) -> None:
