@@ -10,14 +10,15 @@ from filters.filters import IsPage, IsChapter, IsRatio, IsTTSBook
 from keyboards.pagination_kb import create_pagination_keyboard
 from lexicon.lexicon import LEXICON_reading_book, LEXICON_bookmarks
 from states.bot_states import FSMStates
-from tts.tts import text_to_speech
-
+from tts.tts import text_to_speech_book
+from os import listdir
 router = Router()
 
 
 @router.message(Command(commands=["help"]), StateFilter(FSMStates.reading_book))
 async def process_help_reading_book_command(message: Message):
     await message.answer(text=LEXICON_reading_book["help"])
+
 
 
 @router.message(Command(commands=["read_book", "continue"]))
@@ -131,12 +132,14 @@ async def process_page_press(callback: CallbackQuery, state: FSMContext):
 # принимая callback строку вида 'voice-{page_num}'
 @router.callback_query(IsTTSBook(), StateFilter(FSMStates.reading_book))
 async def process_voice_book(callback: CallbackQuery, bot: Bot):
-    text = await AsyncQuery.select_book_fragment(
-        int(callback.data.replace("voice-", ""))
-    )
-    text_to_speech(text, callback.from_user.id)
+    fragment_id = callback.data.replace("voice-", "")
+    text = await AsyncQuery.select_book_fragment(int(fragment_id))
+
+    if fragment_id + '-tts.mp3' not in listdir('tts/book/'):
+        await text_to_speech_book(text, int(fragment_id))
+
     audio = FSInputFile(
-        path=f"tts/{callback.from_user.id}-tts.mp3", filename=f"{text[:13]}.mp3"
+        path=f"tts/book/{fragment_id}-tts.mp3", filename=f"{text[:13]}.mp3"
     )
     async with ChatActionSender.upload_document(chat_id=callback.message.chat.id):
         await bot.send_audio(callback.message.chat.id, audio=audio)

@@ -6,6 +6,7 @@ from aiogram.types import Message
 
 from database.queries import AsyncQuery
 from lexicon.lexicon import LEXICON_default
+from keyboards.menu_kb import create_menu_keyboard
 
 
 router = Router()
@@ -24,6 +25,8 @@ async def process_start_message(message: Message, state: FSMContext) -> None:
     await message.answer(text=LEXICON_default['greeting'][2])
     if await AsyncQuery.select_user(message.from_user.id) is None:
         await AsyncQuery.insert_user(message.from_user.id, message.from_user.first_name)
+
+
 
 
 @router.message(Command(commands=["help"]), StateFilter(default_state))

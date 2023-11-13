@@ -58,6 +58,14 @@ class AsyncQuery:
                 user.current_mn_page = new_page
             await session.commit()
 
+    @staticmethod
+    async def select_user_answers(u_id):
+        """SELECT answers
+        FROM users
+        WHERE user_id = {u_id}"""
+        async with async_session() as session:
+            user = await session.get(UsersOrm, u_id)
+            return user.answers
 
     @staticmethod
     async def update_users_wrong_answer(u_id):

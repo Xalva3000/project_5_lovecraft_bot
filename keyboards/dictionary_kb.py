@@ -33,13 +33,4 @@ def create_dictionary_answer_keyboard() -> InlineKeyboardMarkup:
     return kb_builder.as_markup()
 
 
-# вариант клавиатуры в строчку
-# def create_dictionary_keyboard(user_id) -> InlineKeyboardMarkup:
-#     dct = usersdictplaycache[user_id]
-#     kb_builder = InlineKeyboardBuilder()
-#
-#     kb_builder.row(InlineKeyboardButton(text=f'✖', callback_data=f'close_dict'))
-#     for i in range(0,4):
-#         kb_builder.row(InlineKeyboardButton(text=f'{dct[i][0]}', callback_data=f'answer-{i}'))
-#
-#     return kb_builder.as_markup()
+

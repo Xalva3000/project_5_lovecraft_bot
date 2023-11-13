@@ -110,7 +110,7 @@ async def process_voice_excerpts(callback: CallbackQuery, bot: Bot):
     text = await AsyncQuery.select_excerpt(
         int(callback.data.replace("voice-excerpt-", ""))
     )
-    text_to_speech(text, callback.from_user.id)
+    await text_to_speech(text, callback.from_user.id)
     audio = FSInputFile(
         path=f"tts/{callback.from_user.id}-tts.mp3", filename=f"{text[:13]}.mp3"
     )
@@ -121,7 +121,7 @@ async def process_voice_excerpts(callback: CallbackQuery, bot: Bot):
 @router.callback_query(IsTTSTopExcerpts(), StateFilter(FSMStates.reading_excerpts))
 async def process_voice_top_excerpts(callback: CallbackQuery, bot: Bot):
     text = usertextcache[int(callback.data.replace("voice-top-excerpt-", ""))]
-    text_to_speech(text, callback.from_user.id)
+    await text_to_speech(text, callback.from_user.id)
     audio = FSInputFile(
         path=f"tts/{callback.from_user.id}-tts.mp3", filename=f"{text[:13]}.mp3"
     )
@@ -147,7 +147,8 @@ async def process_next_top_excerpt_button(callback: CallbackQuery, state: FSMCon
     if len(usertextcache) > 1:
         next_pos = (pos + 1) % len(usertextcache) if len(usertextcache) == 2 else (pos + 1) % 3
         await callback.message.edit_text(
-            text=usertextcache[next_pos], reply_markup=create_topexcerpts_keyboard(next_pos)
+            text=usertextcache[next_pos],
+            reply_markup=create_topexcerpts_keyboard(next_pos)
         )
         await callback.answer()
     else:
