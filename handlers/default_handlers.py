@@ -1,10 +1,12 @@
-from aiogram import Router
+from aiogram import Router, F
 from aiogram.filters import Command, StateFilter
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import default_state
-from aiogram.types import Message
+from aiogram.types import Message, CallbackQuery
 
 from database.queries import AsyncQuery
+from filters.filters import IsCloseButton
+from keyboards.menu_kb import create_menu_keyboard
 from lexicon.lexicon import LEXICON_default
 from handlers.menu_handlers import process_menu_message
 
@@ -47,6 +49,18 @@ async def process_cancel_message_not_default_state(message: Message, state: FSMC
     await message.answer(text=LEXICON_default["Cancel"])
 
 
+@router.callback_query(IsCloseButton())
+async def process_any_close_button(callback: CallbackQuery, state: FSMContext):
+    """Хендлер завершения игры по кнопке закрытия.
+    Сброс состояния, удаление сообщения и клавиатуры."""
+    user = await AsyncQuery.select_user(callback.from_user.id)
+    await callback.message.edit_text(
+        text=f"<b>{user.name}</b> (🍪{user.answers}):",
+        reply_markup=create_menu_keyboard()
+    )
+
+
+
 @router.message(Command(commands=["my_info"]))
 async def process_info_message(message: Message) -> None:
     """Хендлер команды /my_info. Присылает сообщение с данными статистики пользователя
@@ -54,10 +68,11 @@ async def process_info_message(message: Message) -> None:
     user = await AsyncQuery.select_user(message.from_user.id)
     tpl = LEXICON_default["my_info"]
     await message.answer(
-        text=f"{tpl[0]}\n"
+        text=f"{tpl[0]}\n\n"
         f"{tpl[1]} {user.answers}\n"
         f"{tpl[2]} {user.right_answers}\n"
-        f"{tpl[3]} {user.wrong_answers}"
+        f"{tpl[3]} {user.wrong_answers}\n\n"
+        f"{tpl[4]}"
     )
 
 

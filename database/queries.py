@@ -134,6 +134,7 @@ class AsyncQuery:
                 result = await session.execute(stmt)
                 return result.scalars().fetchall()
 
+
     # запрос максимального номера страницы для клавиатуры пагинации книги
     @staticmethod
     async def select_max_book_page() -> int:
@@ -194,6 +195,7 @@ class AsyncQuery:
     @staticmethod
     async def select_fragment_id(page_id):
         """SELECT fragment_id
+        FROM min_book
         WHERE page_id = {page_id};"""
         async with async_session() as session:
             result = await session.get(MinBookOrm, page_id)
@@ -203,11 +205,22 @@ class AsyncQuery:
     async def select_page_of_chapter(fragment_id):
         """SELECT min(page_id)
         FROM min_book
-        WHERE fragment_in = {fragment_id};"""
+        WHERE fragment_id = {fragment_id};"""
         async with async_session() as session:
             stmt = select(func.min(MinBookOrm.page_id)).where(MinBookOrm.fragment_id == fragment_id)
             result = await session.execute(stmt)
             return result.scalar()
+
+    @staticmethod
+    async def select_all_fragments():
+        """SELECT fragment
+        FROM min_fragments
+        ORDER BY fragment_id"""
+        # на данный момент не используется
+        async with async_session() as session:
+            stmt = select(MinFragments.fragment).order_by(MinFragments.fragment_id)
+            result = await session.execute(stmt)
+            return result.scalars().all()
 
     @staticmethod
     async def insert_user_excerpt(text, name):

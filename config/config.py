@@ -13,9 +13,10 @@ class WebHookSettings:
     ngrok_url: str
 
     def __post_init__(self):
-        self.webhook_path = f"/bot/{self.bot_token}"
+        self.webhook_path = f"/{self.bot_token}"
         self.webhook_url = f"{self.ngrok_url}{self.webhook_path}"
-
+        self.set_webhook_url = f"https://api.telegram.org/bot{self.bot_token}/setwebhook?url=https://3e97-81-23-183-47.ngrok-free.app"
+        self.delete_webhook_url = f"https://api.telegram.org/bot{self.bot_token}/deletewebhook?url=https://3e97-81-23-183-47.ngrok-free.app"
     def __repr__(self):
         return "<'class WebHookSettings'>"
 

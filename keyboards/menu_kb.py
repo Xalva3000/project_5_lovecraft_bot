@@ -15,5 +15,5 @@ def create_menu_keyboard() -> InlineKeyboardMarkup:
                    InlineKeyboardButton(text=LEXICON_menu["/add_term"], callback_data="/add_term"))
     kb_builder.row(InlineKeyboardButton(text=LEXICON_menu["/my_info"], callback_data="/my_info"),
                    InlineKeyboardButton(text=LEXICON_menu["/urls"], callback_data="/urls"))
-
+    kb_builder.row(InlineKeyboardButton(text="✖", callback_data="close_menu"))
     return kb_builder.as_markup()

@@ -12,6 +12,15 @@ class IsPage(BaseFilter):
         return False
 
 
+class IsCloseButton(BaseFilter):
+    async def __call__(self, callback: CallbackQuery) -> bool:
+        buttons = ["close_excerpts", "close_top_excerpts", "cancel_bookmarks",
+                   "close_top_excerpts", "close_book", "close_dct"]
+        if callback.data in buttons:
+            return True
+        return False
+
+
 class IsChapter(BaseFilter):
     async def __call__(self, message: Message) -> bool:
         match_obj = fullmatch(r"/фраг (\d{1,3})", message.text)

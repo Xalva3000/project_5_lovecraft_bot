@@ -27,6 +27,11 @@ async def process_menu_message(message: Message, state: FSMContext) -> None:
         text=f"<b>{user.name}</b> (🍪{user.answers}):",
         reply_markup=create_menu_keyboard()
     )
+@router.callback_query(F.data == 'close_menu')
+async def process_close_menu_button(callback: CallbackQuery, state: FSMContext):
+    await state.clear()
+    await callback.message.delete_reply_markup()
+    await callback.message.delete()
 
 
 @router.callback_query(F.data == '/read_book')
@@ -114,10 +119,11 @@ async def process_info_button(callback: CallbackQuery) -> None:
     user = await AsyncQuery.select_user(callback.from_user.id)
     tpl = LEXICON_default["my_info"]
     await callback.message.edit_text(
-        text=f"{tpl[0]}\n"
+        text=f"{tpl[0]}\n\n"
         f"{tpl[1]} {user.answers}\n"
         f"{tpl[2]} {user.right_answers}\n"
-        f"{tpl[3]} {user.wrong_answers}"
+        f"{tpl[3]} {user.wrong_answers}\n\n"
+        f"{tpl[4]}"
     )
 
 
