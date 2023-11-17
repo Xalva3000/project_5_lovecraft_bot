@@ -20,7 +20,7 @@ def create_bookmarks_keyboard(dct) -> InlineKeyboardMarkup:
         InlineKeyboardButton(
             text=LEXICON_bookmarks["edit_bookmarks_button"], callback_data="edit_bookmarks"
         ),
-        InlineKeyboardButton(text=LEXICON_bookmarks["cancel_button"], callback_data="cancel_bookmarks"),
+        InlineKeyboardButton(text=LEXICON_bookmarks["menu"], callback_data="cancel_bookmarks"),
         width=2,
     )
     return kb_builder.as_markup()

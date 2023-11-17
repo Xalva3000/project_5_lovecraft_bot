@@ -8,6 +8,8 @@ from database.temporary_info import usersdictplaycache
 from filters.filters import IsAnswer, IsDictPattern
 from keyboards.dictionary_kb import (create_dictionary_answer_keyboard,
                                      create_dictionary_keyboard)
+from keyboards.return_menu_kb import create_return_menu_keyboard
+from keyboards.del_message_kb import create_del_message_keyboard
 from lexicon.lexicon import LEXICON_dict
 from states.bot_states import FSMStates
 from services.cashing import load_answers
@@ -18,37 +20,16 @@ router = Router()
 @router.message(Command(commands=["help"]), StateFilter(FSMStates.play_dict))
 async def process_help_dictionary(message: Message):
     """Хендлер команды /help при состоянии игры 'Словарь'."""
-    await message.answer(LEXICON_dict["help"])
+    await message.answer(LEXICON_dict["help"],
+                         reply_markup=create_del_message_keyboard())
 
 
 @router.message(Command(commands=["cancel"]), StateFilter(FSMStates.play_dict))
 async def process_dictionary_cancel(message: Message, state: FSMContext):
     """Хендлер команды /cancel. Отмена состояния игры 'Словарь'."""
     await state.clear()
-    await message.answer(text=LEXICON_dict["cancel"])
-
-
-@router.message(Command(commands=["play_dict"]))
-async def process_play_dictionary(message: Message, state: FSMContext):
-    """Хендлер команды /play_dict. Загрузка определение из БД, если терминов в словаре достаточно,
-    то устанавливается состояние игры Словарь, и собирается клавиатура из вариантов ответов."""
-    text = await load_answers(message.from_user.id)
-    if text is None:
-        await message.answer(text=LEXICON_dict["need_more_terms"])
-    else:
-        await state.set_state(FSMStates.play_dict)
-        await message.answer(
-            text=text, reply_markup=create_dictionary_keyboard(message.from_user.id)
-        )
-
-
-@router.callback_query(F.data == "close_dct")
-async def process_close_dict_button(callback: CallbackQuery, state: FSMContext):
-    """Хендлер завершения игры по кнопке закрытия.
-    Сброс состояния, удаление сообщения и клавиатуры."""
-    await state.clear()
-    await callback.message.delete_reply_markup()
-    await callback.message.delete()
+    await message.answer(text=LEXICON_dict["cancel"],
+                         reply_markup=create_del_message_keyboard())
 
 
 @router.callback_query(F.data == "next_question")
@@ -96,20 +77,13 @@ async def process_report_button(callback: CallbackQuery):
     await callback.answer(text=LEXICON_dict["report"])
 
 
-@router.message(Command(commands=["add_term"]))
-async def process_add_term_message(message: Message, state: FSMContext):
-    """Хендлер команды /add_term. Устанавливает состояние добавление термина.
-    Сообщает о том, что нужно вводить термин и в каком виде."""
-    await state.set_state(FSMStates.adding_term)
-    await message.answer(text=LEXICON_dict["add_term"])
-
-
 @router.message(Command(commands=["cancel"]), StateFilter(FSMStates.adding_term))
 async def process_add_term_cancel(message: Message, state: FSMContext):
     """Хедлер команды /cancel при состоянии добавления термина.
     Сброс состояния добавления термина. Сообщение об отмене."""
     await state.clear()
-    await message.answer(text=LEXICON_dict["add_cancel"])
+    await message.answer(text=LEXICON_dict["add_cancel"],
+                         reply_markup=create_return_menu_keyboard())
 
 
 @router.message(IsDictPattern(), StateFilter(FSMStates.adding_term))
@@ -120,7 +94,8 @@ async def process_insert_user_term(message: Message, state: FSMContext):
     await state.clear()
     term_tpl = tuple(message.text.split("$$"))
     await AsyncQuery.insert_term(term_tpl)
-    await message.answer(text=LEXICON_dict["add_success"])
+    await message.answer(text=LEXICON_dict["add_success"],
+                         reply_markup=create_return_menu_keyboard())
 
 
 @router.message(Command(commands=["reset_stats"]), StateFilter(FSMStates.play_dict))
@@ -128,4 +103,5 @@ async def process_reset_stats_message(message: Message):
     """Хендлер команды /reset_stats.
     Обнуление статистики пользователя в БД таблице users."""
     await AsyncQuery.reset_users_stats(message.from_user.id)
-    await message.answer(text=LEXICON_dict["reset_stats"])
+    await message.answer(text=LEXICON_dict["reset_stats"],
+                         reply_markup=create_return_menu_keyboard())

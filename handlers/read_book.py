@@ -6,7 +6,7 @@ from aiogram.utils.chat_action import ChatActionSender
 
 from database.queries import AsyncQuery
 from filters.filters import IsPage, IsChapter, IsRatio, IsTTSBook
-
+from keyboards.return_menu_kb import create_return_menu_keyboard
 from keyboards.pagination_kb import create_pagination_keyboard
 from lexicon.lexicon import LEXICON_reading_book, LEXICON_bookmarks
 from states.bot_states import FSMStates
@@ -20,7 +20,6 @@ async def process_help_reading_book_command(message: Message):
     await message.answer(text=LEXICON_reading_book["help"])
 
 
-
 @router.message(Command(commands=["read_book", "continue"]))
 async def process_read_book_default_state(message: Message, state: FSMContext):
     await state.set_state(FSMStates.reading_book)
@@ -29,14 +28,6 @@ async def process_read_book_default_state(message: Message, state: FSMContext):
     await message.answer(
         text=tpl_page[0], reply_markup=create_pagination_keyboard(page, tpl_page[1])
     )
-
-
-# Хендлер нажатия кнопки отмены. Удаление клавиатуры и сообщения с текстом
-@router.callback_query(F.data == "close_book")
-async def process_cancel_press(callback: CallbackQuery, state: FSMContext):
-    await state.clear()
-    await callback.message.delete_reply_markup()
-    await callback.message.delete()
 
 
 # Хендлер отмены
@@ -142,4 +133,5 @@ async def process_voice_book(callback: CallbackQuery, bot: Bot):
         path=f"tts/book/{fragment_id}-tts.mp3", filename=f"{text[:13]}.mp3"
     )
     async with ChatActionSender.upload_document(chat_id=callback.message.chat.id):
-        await bot.send_audio(callback.message.chat.id, audio=audio)
+        await bot.send_audio(callback.message.chat.id,
+                             audio=audio)

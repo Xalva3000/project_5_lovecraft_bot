@@ -10,6 +10,8 @@ from keyboards.menu_kb import create_menu_keyboard
 from keyboards.pagination_kb import create_pagination_keyboard
 from keyboards.rating_kb import create_rating_keyboard
 from keyboards.topexcerpts_kb import create_topexcerpts_keyboard
+from keyboards.return_menu_kb import create_return_menu_keyboard
+from keyboards.del_message_kb import create_del_message_keyboard
 from lexicon.lexicon import LEXICON_dict, LEXICON_default, LEXICON_excerpts, LEXICON_bookmarks
 from services.cashing import load_answers, load_top_excerpts
 from states.bot_states import FSMStates
@@ -27,6 +29,8 @@ async def process_menu_message(message: Message, state: FSMContext) -> None:
         text=f"<b>{user.name}</b> (🍪{user.answers}):",
         reply_markup=create_menu_keyboard()
     )
+
+
 @router.callback_query(F.data == 'close_menu')
 async def process_close_menu_button(callback: CallbackQuery, state: FSMContext):
     await state.clear()
@@ -46,11 +50,12 @@ async def process_read_book_button(callback: CallbackQuery, state: FSMContext):
 
 @router.callback_query(F.data == "/play_dict")
 async def process_play_dictionary_button(callback: CallbackQuery, state: FSMContext):
-    """Хендлер команды /play_dict. Загрузка определение из БД, если терминов в словаре достаточно,
+    """Хендлер кнопки /play_dict. Загрузка определение из БД, если терминов в словаре достаточно,
     то устанавливается состояние игры Словарь, и собирается клавиатура из вариантов ответов."""
     text = await load_answers(callback.from_user.id)
     if text is None:
-        await callback.message.edit_text(text=LEXICON_dict["need_more_terms"])
+        await callback.message.edit_text(text=LEXICON_dict["need_more_terms"],
+                                         reply_markup=create_return_menu_keyboard())
     else:
         await state.set_state(FSMStates.play_dict)
         await callback.message.edit_text(
@@ -60,10 +65,11 @@ async def process_play_dictionary_button(callback: CallbackQuery, state: FSMCont
 
 @router.callback_query(F.data == "/add_term")
 async def process_add_term_button(callback: CallbackQuery, state: FSMContext):
-    """Хендлер команды /add_term. Устанавливает состояние добавление термина.
+    """Хендлер кнопки /add_term. Устанавливает состояние добавление термина.
     Сообщает о том, что нужно вводить термин и в каком виде."""
     await state.set_state(FSMStates.adding_term)
-    await callback.message.edit_text(text=LEXICON_dict["add_term"])
+    await callback.message.edit_text(text=LEXICON_dict["add_term"],
+                                     reply_markup=create_return_menu_keyboard())
 
 
 @router.callback_query(F.data == "/bookmarks")
@@ -77,7 +83,8 @@ async def process_bookmarks_button(callback: CallbackQuery, state: FSMContext):
             text=LEXICON_bookmarks[callback.data], reply_markup=create_bookmarks_keyboard(dct)
         )
     else:
-        await callback.message.edit_text(text=LEXICON_bookmarks["no_bookmarks"])
+        await callback.message.edit_text(text=LEXICON_bookmarks["no_bookmarks"],
+                                         reply_markup=create_return_menu_keyboard())
 
 
 @router.callback_query(F.data == "/random_excerpt")
@@ -91,7 +98,9 @@ async def process_random_excerpt_button(callback: CallbackQuery, state: FSMConte
             reply_markup=create_rating_keyboard(tpl_text[1]))
     else:
         await callback.message.edit_text(
-            text=LEXICON_excerpts["no_excerpts"])
+            text=LEXICON_excerpts["no_excerpts"],
+            reply_markup=create_return_menu_keyboard()
+        )
 
 
 @router.callback_query(F.data == "/read_top_excerpts")
@@ -103,34 +112,36 @@ async def process_read_excerpts_button(callback: CallbackQuery, state: FSMContex
             text=usertextcache[0], reply_markup=create_topexcerpts_keyboard(0)
         )
     else:
-        await callback.message.edit_text(text=LEXICON_excerpts["no_excerpts"])
+        await callback.message.edit_text(text=LEXICON_excerpts["no_excerpts"],
+                                         reply_markup=create_return_menu_keyboard())
 
 
 @router.callback_query(F.data == "/add_excerpt")
 async def process_offer_excerpt_button(callback: CallbackQuery, state: FSMContext):
     await state.set_state(FSMStates.adding_excerpt)
-    await callback.message.edit_text(text=LEXICON_excerpts["add_excerpt"])
+    await callback.message.edit_text(text=LEXICON_excerpts["add_excerpt"],
+                                     reply_markup=create_return_menu_keyboard())
 
 
 @router.callback_query(F.data == "/my_info")
 async def process_info_button(callback: CallbackQuery) -> None:
-    """Хендлер команды /my_info. Присылает сообщение с данными статистики пользователя
+    """Хендлер кнопки /my_info. Выводит данные статистики пользователя
     в игре 'Словарь'"""
     user = await AsyncQuery.select_user(callback.from_user.id)
     tpl = LEXICON_default["my_info"]
     await callback.message.edit_text(
         text=f"{tpl[0]}\n\n"
-        f"{tpl[1]} {user.answers}\n"
+        f"{tpl[1]} {user.answers}\n\n"
         f"{tpl[2]} {user.right_answers}\n"
-        f"{tpl[3]} {user.wrong_answers}\n\n"
-        f"{tpl[4]}"
+        f"{tpl[3]} {user.wrong_answers}",
+        reply_markup=create_return_menu_keyboard()
     )
 
 
 @router.callback_query(F.data == '/urls')
 async def process_urls_button(callback: CallbackQuery) -> None:
-    """Хендлер команды /urls. Присылает сообщение с указанием ссылок
+    """Хендлер кнопки /urls. Присылает сообщение с указанием ссылок
     на полезные ресурсы по тематике бота"""
-    await callback.message.edit_text(text=LEXICON_default['urls'])
-
-
+    await callback.message.edit_text(
+        text=LEXICON_default['urls'],
+        reply_markup=create_return_menu_keyboard())

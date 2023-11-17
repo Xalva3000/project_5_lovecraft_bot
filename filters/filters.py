@@ -15,8 +15,15 @@ class IsPage(BaseFilter):
 class IsCloseButton(BaseFilter):
     async def __call__(self, callback: CallbackQuery) -> bool:
         buttons = ["close_excerpts", "close_top_excerpts", "cancel_bookmarks",
-                   "close_top_excerpts", "close_book", "close_dct"]
+                   "close_top_excerpts", "close_book", "close_dct", "return_menu"]
         if callback.data in buttons:
+            return True
+        return False
+
+
+class IsDelMessageButton(BaseFilter):
+    async def __call__(self, callback: CallbackQuery) -> bool:
+        if callback.data == 'del_message':
             return True
         return False
 

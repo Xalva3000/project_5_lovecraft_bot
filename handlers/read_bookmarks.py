@@ -7,6 +7,7 @@ from database.queries import AsyncQuery
 from filters.filters import (IsDelBookmarkCallbackData, IsDigitCallbackData)
 from keyboards.bookmarks_kb import (create_bookmarks_keyboard,
                                     create_edit_keyboard)
+from keyboards.return_menu_kb import create_return_menu_keyboard
 from keyboards.pagination_kb import create_pagination_keyboard
 from lexicon.lexicon import LEXICON_bookmarks
 from states.bot_states import FSMStates
@@ -14,30 +15,9 @@ from states.bot_states import FSMStates
 router = Router()
 
 
-# Этот хэндлер будет срабатывать на команду "/bookmarks"
-# и отправлять пользователю список сохраненных закладок,
-# если они есть или сообщение о том, что закладок нет
-@router.message(Command(commands="bookmarks"))
-async def process_bookmarks_command(message: Message, state: FSMContext):
-    await state.set_state(FSMStates.bookmarks_list)
-    pages = await AsyncQuery.select_users_bookmarks(message.from_user.id)
-    if pages:
-        snippets = await AsyncQuery.select_book_page(pages)
-        dct = {i.page_id: i.page_text[:40] for i in snippets}
-        await message.answer(
-            text=LEXICON_bookmarks[message.text], reply_markup=create_bookmarks_keyboard(dct)
-        )
-    else:
-        await message.answer(text=LEXICON_bookmarks["no_bookmarks"])
-
-
-# Этот хэндлер будет срабатывать на нажатие инлайн-кнопки
-# "отменить" во время работы со списком закладок (просмотр и редактирование)
-@router.callback_query(F.data == "cancel_bookmarks")
-async def process_cancel_press(callback: CallbackQuery, state: FSMContext):
-    await state.clear()
-    await callback.message.edit_text(text=LEXICON_bookmarks["cancel_text"])
-    await callback.answer()
+@router.message(Command(commands='help'), FSMStates.bookmarks_list)
+async def process_bookmarks_help_message(message: Message):
+    await message.answer(text=LEXICON_bookmarks['help'])
 
 
 @router.callback_query(F.data == "cancel-bookmarks-edit")
@@ -48,7 +28,8 @@ async def process_cancel_press(callback: CallbackQuery, state: FSMContext):
         snippets = await AsyncQuery.select_book_page(pages)
         dct = {i.page_id: i.page_text[:40] for i in snippets}
         await callback.message.edit_text(
-            text=LEXICON_bookmarks["/bookmarks"], reply_markup=create_bookmarks_keyboard(dct)
+            text=LEXICON_bookmarks["/bookmarks"],
+            reply_markup=create_bookmarks_keyboard(dct)
         )
     else:
         await callback.answer(text=LEXICON_bookmarks["no_bookmarks"])
@@ -86,7 +67,8 @@ async def process_edit_press(callback: CallbackQuery, state: FSMContext):
         snippets = await AsyncQuery.select_book_page(pages)
         dct = {i.page_id: i.page_text[:40] for i in snippets}
     await callback.message.edit_text(
-        text=LEXICON_bookmarks[callback.data], reply_markup=create_edit_keyboard(dct)
+        text=LEXICON_bookmarks[callback.data],
+        reply_markup=create_edit_keyboard(dct)
     )
     await callback.answer()
 
@@ -105,8 +87,12 @@ async def process_del_bookmark_press(callback: CallbackQuery):
         snippets = await AsyncQuery.select_book_page(pages)
         dct = {i.page_id: i.page_text[:40] for i in snippets}
         await callback.message.edit_text(
-            text=LEXICON_bookmarks["/bookmarks"], reply_markup=create_edit_keyboard(dct)
+            text=LEXICON_bookmarks["/bookmarks"],
+            reply_markup=create_edit_keyboard(dct)
         )
     else:
-        await callback.message.edit_text(text=LEXICON_bookmarks["no_bookmarks"])
+        await callback.message.edit_text(
+            text=LEXICON_bookmarks["no_bookmarks"],
+            reply_markup=create_return_menu_keyboard()
+        )
     await callback.answer()
