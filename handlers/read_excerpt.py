@@ -12,7 +12,7 @@ from filters.filters import (IsNextTopExcerpt, IsRating, IsTTSExcerpts,
 from keyboards.rating_kb import create_rating_keyboard
 from keyboards.topexcerpts_kb import create_topexcerpts_keyboard
 from keyboards.return_menu_kb import create_return_menu_keyboard
-from keyboards.del_message_kb import create_del_message_keyboard
+from keyboards.del_message_kb import create_del_message_keyboard, create_del_audio_keyboard
 from states.bot_states import FSMStates
 from tts.tts import text_to_speech
 from lexicon.lexicon import LEXICON_excerpts
@@ -78,7 +78,10 @@ async def process_voice_excerpts(callback: CallbackQuery, bot: Bot):
         path=f"tts/{callback.from_user.id}-tts.mp3", filename=f"{text[:13]}.mp3"
     )
     async with ChatActionSender.upload_document(chat_id=callback.message.chat.id):
-        await bot.send_audio(callback.message.chat.id, audio=audio)
+        await bot.send_audio(callback.message.chat.id,
+                             audio=audio,
+                             reply_markup=create_del_audio_keyboard()
+                             )
 
 
 @router.callback_query(IsTTSTopExcerpts(), StateFilter(FSMStates.reading_excerpts))
@@ -89,7 +92,10 @@ async def process_voice_top_excerpts(callback: CallbackQuery, bot: Bot):
         path=f"tts/{callback.from_user.id}-tts.mp3", filename=f"{text[:13]}.mp3"
     )
     async with ChatActionSender.upload_document(chat_id=callback.message.chat.id):
-        await bot.send_audio(callback.message.chat.id, audio=audio)
+        await bot.send_audio(callback.message.chat.id,
+                             audio=audio,
+                             reply_markup=create_del_audio_keyboard()
+                             )
 
 
 @router.callback_query(IsNextTopExcerpt(), StateFilter(FSMStates.reading_excerpts))

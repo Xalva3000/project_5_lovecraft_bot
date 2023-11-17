@@ -6,7 +6,7 @@ from aiogram.utils.chat_action import ChatActionSender
 
 from database.queries import AsyncQuery
 from filters.filters import IsPage, IsChapter, IsRatio, IsTTSBook
-from keyboards.return_menu_kb import create_return_menu_keyboard
+from keyboards.del_message_kb import create_del_message_keyboard
 from keyboards.pagination_kb import create_pagination_keyboard
 from lexicon.lexicon import LEXICON_reading_book, LEXICON_bookmarks
 from states.bot_states import FSMStates
@@ -134,4 +134,4 @@ async def process_voice_book(callback: CallbackQuery, bot: Bot):
     )
     async with ChatActionSender.upload_document(chat_id=callback.message.chat.id):
         await bot.send_audio(callback.message.chat.id,
-                             audio=audio)
+                             audio=audio, reply_markup=create_del_message_keyboard())
