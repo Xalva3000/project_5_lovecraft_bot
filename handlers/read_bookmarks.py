@@ -9,6 +9,7 @@ from keyboards.bookmarks_kb import (create_bookmarks_keyboard,
                                     create_edit_keyboard)
 from keyboards.return_menu_kb import create_return_menu_keyboard
 from keyboards.pagination_kb import create_pagination_keyboard
+from keyboards.del_message_kb import create_del_message_keyboard
 from lexicon.lexicon import LEXICON_bookmarks
 from states.bot_states import FSMStates
 
@@ -17,7 +18,8 @@ router = Router()
 
 @router.message(Command(commands='help'), FSMStates.bookmarks_list)
 async def process_bookmarks_help_message(message: Message):
-    await message.answer(text=LEXICON_bookmarks['help'])
+    await message.answer(text=LEXICON_bookmarks['help'],
+                         reply_markup=create_del_message_keyboard())
 
 
 @router.callback_query(F.data == "cancel-bookmarks-edit")

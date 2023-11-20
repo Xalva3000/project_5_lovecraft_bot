@@ -17,7 +17,8 @@ router = Router()
 
 @router.message(Command(commands=["help"]), StateFilter(FSMStates.reading_book))
 async def process_help_reading_book_command(message: Message):
-    await message.answer(text=LEXICON_reading_book["help"])
+    await message.answer(text=LEXICON_reading_book["help"],
+                         reply_markup=create_del_message_keyboard())
 
 
 @router.message(Command(commands=["read_book", "continue"]))
@@ -35,7 +36,8 @@ async def process_read_book_default_state(message: Message, state: FSMContext):
     Command(commands=["cancel"]), StateFilter(FSMStates.reading_book)
 )
 async def process_cancel_message(message: Message, state: FSMContext):
-    await message.answer(text=LEXICON_reading_book["cancel"])
+    await message.answer(text=LEXICON_reading_book["cancel"],
+                         reply_markup=create_del_message_keyboard())
     await state.clear()
 
 

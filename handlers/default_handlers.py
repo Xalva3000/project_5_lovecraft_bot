@@ -20,9 +20,9 @@ async def process_start_message(message: Message, state: FSMContext) -> None:
     """Хендлер команды /start, сбрасывает состояние, отсылает информационные сообщения,
     аутентификация пользователя. Если пользователь отсутствует в БД, то создает
     строку в таблице users с начальным значениями для этого пользователя."""
-    await state.clear()
     if await AsyncQuery.select_user(message.from_user.id) is None:
         await AsyncQuery.insert_user(message.from_user.id, message.from_user.first_name)
+    await state.clear()
     await message.answer(
         text=f"{LEXICON_default['greeting'][0]} {message.from_user.first_name}!",
         reply_markup=create_del_message_keyboard()
@@ -32,7 +32,6 @@ async def process_start_message(message: Message, state: FSMContext) -> None:
         reply_markup=create_del_message_keyboard()
     )
     await process_menu_message(message, state)
-
 
 
 @router.message(Command(commands=["help"]), StateFilter(default_state))
@@ -61,9 +60,11 @@ async def process_any_close_button(callback: CallbackQuery, state: FSMContext):
         reply_markup=create_menu_keyboard()
     )
 
+
 @router.callback_query(IsDelMessageButton())
 async def process_del_message_button(callback: CallbackQuery):
     await callback.message.delete()
+
 
 @router.callback_query(F.data == 'del_audio')
 async def process_del_message_button(callback: CallbackQuery):
