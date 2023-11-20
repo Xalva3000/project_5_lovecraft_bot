@@ -21,6 +21,8 @@ async def process_start_message(message: Message, state: FSMContext) -> None:
     аутентификация пользователя. Если пользователь отсутствует в БД, то создает
     строку в таблице users с начальным значениями для этого пользователя."""
     await state.clear()
+    if await AsyncQuery.select_user(message.from_user.id) is None:
+        await AsyncQuery.insert_user(message.from_user.id, message.from_user.first_name)
     await message.answer(
         text=f"{LEXICON_default['greeting'][0]} {message.from_user.first_name}!",
         reply_markup=create_del_message_keyboard()
@@ -30,8 +32,7 @@ async def process_start_message(message: Message, state: FSMContext) -> None:
         reply_markup=create_del_message_keyboard()
     )
     await process_menu_message(message, state)
-    if await AsyncQuery.select_user(message.from_user.id) is None:
-        await AsyncQuery.insert_user(message.from_user.id, message.from_user.first_name)
+
 
 
 @router.message(Command(commands=["help"]), StateFilter(default_state))
