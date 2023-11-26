@@ -28,7 +28,7 @@ async def process_cancel_press(callback: CallbackQuery, state: FSMContext):
     pages = await AsyncQuery.select_users_bookmarks(callback.from_user.id)
     if pages:
         snippets = await AsyncQuery.select_book_page(pages)
-        dct = {i.page_id: i.page_text[:40] for i in snippets}
+        dct = {i.page_id: i.page_text[:12].replace('\n', ' ') for i in snippets}
         await callback.message.edit_text(
             text=LEXICON_bookmarks["/bookmarks"],
             reply_markup=create_bookmarks_keyboard(dct)
@@ -67,7 +67,7 @@ async def process_edit_press(callback: CallbackQuery, state: FSMContext):
     pages = await AsyncQuery.select_users_bookmarks(callback.from_user.id)
     if pages:
         snippets = await AsyncQuery.select_book_page(pages)
-        dct = {i.page_id: i.page_text[:40] for i in snippets}
+        dct = {i.page_id: i.page_text[:12].replace('\n', ' ') for i in snippets}
     await callback.message.edit_text(
         text=LEXICON_bookmarks[callback.data],
         reply_markup=create_edit_keyboard(dct)
@@ -78,16 +78,18 @@ async def process_edit_press(callback: CallbackQuery, state: FSMContext):
 # Этот хэндлер будет срабатывать на нажатие инлайн-кнопки
 # с закладкой из списка закладок к удалению
 @router.callback_query(
-    IsDelBookmarkCallbackData(), StateFilter(FSMStates.edit_bookmarks)
+    IsDelBookmarkCallbackData(),
+    StateFilter(FSMStates.edit_bookmarks)
 )
 async def process_del_bookmark_press(callback: CallbackQuery):
     await AsyncQuery.delete_users_bookmark(
-        callback.from_user.id, int(callback.data[:-3])
+        callback.from_user.id,
+        int(callback.data[:-3])
     )
     pages = await AsyncQuery.select_users_bookmarks(callback.from_user.id)
     if pages:
         snippets = await AsyncQuery.select_book_page(pages)
-        dct = {i.page_id: i.page_text[:40] for i in snippets}
+        dct = {i.page_id: i.page_text[:12].replace('\n', ' ') for i in snippets}
         await callback.message.edit_text(
             text=LEXICON_bookmarks["/bookmarks"],
             reply_markup=create_edit_keyboard(dct)

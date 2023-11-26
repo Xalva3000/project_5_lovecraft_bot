@@ -63,9 +63,11 @@ async def process_any_close_button(callback: CallbackQuery, state: FSMContext):
 
 @router.callback_query(IsDelMessageButton())
 async def process_del_message_button(callback: CallbackQuery):
+    """Хэндлер нажатия кнопки удаления сообщения бота"""
     await callback.message.delete()
 
 
 @router.callback_query(F.data == 'del_audio')
-async def process_del_message_button(callback: CallbackQuery):
+async def process_del_audio_button(callback: CallbackQuery):
+    """Хэндлер нажатия кнопки удаления аудио сообщения бота"""
     await callback.message.delete()

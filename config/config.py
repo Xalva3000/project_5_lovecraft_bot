@@ -7,6 +7,7 @@ from environs import Env
 class TgBot:
     token: str
 
+
 @dataclass
 class WebHookSettings:
     bot_token: str
@@ -17,6 +18,7 @@ class WebHookSettings:
         self.webhook_url = f"{self.ngrok_url}{self.webhook_path}"
         self.set_webhook_url = f"https://api.telegram.org/bot{self.bot_token}/setwebhook?url=https://3e97-81-23-183-47.ngrok-free.app"
         self.delete_webhook_url = f"https://api.telegram.org/bot{self.bot_token}/deletewebhook?url=https://3e97-81-23-183-47.ngrok-free.app"
+
     def __repr__(self):
         return "<'class WebHookSettings'>"
 
@@ -25,12 +27,12 @@ class WebHookSettings:
 class Config:
     tg_bot: TgBot
 
+
 def load_webhook_settings(path: str | None = None) -> WebHookSettings:
     env = Env()
     env.read_env(path)
     return WebHookSettings(bot_token=env("BOT_TOKEN"),
                            ngrok_url=env("NGROK_URL"))
-
 
 
 def load_config(path: str | None = None) -> Config:

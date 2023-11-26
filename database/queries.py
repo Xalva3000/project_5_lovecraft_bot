@@ -129,7 +129,7 @@ class AsyncQuery:
                 stmt = (
                     select(MinBookOrm)
                     .where(MinBookOrm.page_id.in_(set(page)))
-                    .limit(10)
+                    .limit(15)
                 )
                 result = await session.execute(stmt)
                 return result.scalars().fetchall()
