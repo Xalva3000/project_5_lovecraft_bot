@@ -7,7 +7,7 @@ from keyboards.bookmarks_kb import create_bookmarks_keyboard
 from keyboards.dictionary_kb import create_dictionary_keyboard
 from keyboards.menu_kb import create_menu_keyboard
 from keyboards.pagination_kb import create_pagination_keyboard
-from keyboards.rating_kb import create_rating_keyboard
+from keyboards.excerpt_kb import create_excerpt_keyboard
 from keyboards.return_menu_kb import create_return_menu_keyboard
 from lexicon.lexicon import LEXICON_dict, LEXICON_default, LEXICON_excerpts, LEXICON_bookmarks
 from services.cashing import load_answers
@@ -100,7 +100,7 @@ async def process_random_excerpt_button(callback: CallbackQuery, state: FSMConte
         await state.set_state(FSMStates.reading_excerpts)
         await callback.message.edit_text(
             text=tpl_text[0] + f'\n\n{LEXICON_excerpts["added_by"]} {tpl_text[2]}',
-            reply_markup=create_rating_keyboard(tpl_text[1]))
+            reply_markup=create_excerpt_keyboard(tpl_text[1]))
     else:
         await callback.message.edit_text(
             text=LEXICON_excerpts["no_excerpts"],

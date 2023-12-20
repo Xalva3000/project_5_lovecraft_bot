@@ -6,7 +6,7 @@ from aiogram.utils.chat_action import ChatActionSender
 
 from database.queries import AsyncQuery
 from filters.filters import IsTTSExcerpts
-from keyboards.rating_kb import create_rating_keyboard
+from keyboards.excerpt_kb import create_excerpt_keyboard
 from keyboards.return_menu_kb import create_return_menu_keyboard
 from keyboards.del_message_kb import create_del_message_keyboard, create_del_audio_keyboard
 from states.bot_states import FSMStates
@@ -62,7 +62,7 @@ async def process_next_excerpt_button(callback: CallbackQuery, state: FSMContext
     if tpl_text:
         await callback.message.edit_text(
             text=tpl_text[0] + f'\n\n{LEXICON_excerpts["added_by"]} {tpl_text[2]}',
-            reply_markup=create_rating_keyboard(tpl_text[1]),
+            reply_markup=create_excerpt_keyboard(tpl_text[1]),
         )
     else:
         await callback.answer(text=LEXICON_excerpts["only_one_excerpt"])
