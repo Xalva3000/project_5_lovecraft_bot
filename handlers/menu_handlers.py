@@ -3,16 +3,14 @@ from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message, CallbackQuery
 
-from database.temporary_info import usertextcache
 from keyboards.bookmarks_kb import create_bookmarks_keyboard
 from keyboards.dictionary_kb import create_dictionary_keyboard
 from keyboards.menu_kb import create_menu_keyboard
 from keyboards.pagination_kb import create_pagination_keyboard
 from keyboards.rating_kb import create_rating_keyboard
-from keyboards.topexcerpts_kb import create_topexcerpts_keyboard
 from keyboards.return_menu_kb import create_return_menu_keyboard
 from lexicon.lexicon import LEXICON_dict, LEXICON_default, LEXICON_excerpts, LEXICON_bookmarks
-from services.cashing import load_answers, load_top_excerpts
+from services.cashing import load_answers
 from states.bot_states import FSMStates
 from database.queries import AsyncQuery
 
@@ -108,20 +106,6 @@ async def process_random_excerpt_button(callback: CallbackQuery, state: FSMConte
             text=LEXICON_excerpts["no_excerpts"],
             reply_markup=create_return_menu_keyboard()
         )
-
-
-@router.callback_query(F.data == "/read_top_excerpts")
-async def process_read_excerpts_button(callback: CallbackQuery, state: FSMContext):
-    """Хендлер кнопки топ 3 по популярности отрывка"""
-    await load_top_excerpts()
-    if usertextcache:
-        await state.set_state(FSMStates.reading_excerpts)
-        await callback.message.edit_text(
-            text=usertextcache[0], reply_markup=create_topexcerpts_keyboard(0)
-        )
-    else:
-        await callback.message.edit_text(text=LEXICON_excerpts["no_excerpts"],
-                                         reply_markup=create_return_menu_keyboard())
 
 
 @router.callback_query(F.data == "/add_excerpt")

@@ -223,13 +223,20 @@ class AsyncQuery:
             return result.scalars().all()
 
     @staticmethod
-    async def insert_user_excerpt(text, name):
-        """INSERT INTO usertext (excerpt, user_name)
-        VALUES ({text}, {name});"""
+    async def select_all_excerpt_ids():
+        """SELECT id
+        FROM usertext"""
         async with async_session() as session:
-            session.add(UserTextOrm(excerpt=text, user_name=name))
-            await session.commit()
+            stmt = select(UserTextOrm.id)
+            result = await session.execute(stmt)
+            return result.scalars().all()
 
+    @staticmethod
+    async def delete_excerpt_by_id(excerpt_id: int):
+        async with async_session() as session:
+            stmt = delete(UserTextOrm).where(UserTextOrm.id == excerpt_id)
+            await session.execute(stmt)
+            await session.commit()
 
     @staticmethod
     async def select_random_excerpt(previous_num=None) -> tuple | None:
@@ -254,6 +261,15 @@ class AsyncQuery:
                 random_num = choice(all_excerpts)
             result = await session.get(UserTextOrm, random_num)
             return result.excerpt, result.id, result.user_name
+
+
+    @staticmethod
+    async def insert_user_excerpt(text, name):
+        """INSERT INTO usertext (excerpt, user_name)
+        VALUES ({text}, {name});"""
+        async with async_session() as session:
+            session.add(UserTextOrm(excerpt=text, user_name=name))
+            await session.commit()
 
     @staticmethod
     async def insert_kabdict_definition(dct):

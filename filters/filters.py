@@ -49,26 +49,6 @@ class IsRatio(BaseFilter):
         return False
 
 
-class IsRating(BaseFilter):
-    """Фильтр сообщений от нажатия кнопки при чтении случайного отрывка
-    с изображением emoji 'большой палец поднят' или 'опущен', что означает
-     повышение или понижения общей оценки отрывка."""
-    async def __call__(self, callback: CallbackQuery) -> bool:
-        if fullmatch(r"up_\d+|down_\d+", callback.data):
-            return True
-        return False
-
-
-class IsNextTopExcerpt(BaseFilter):
-    """Фильтр сообщений от нажатия кнопки '>>' при чтении лучших
-    отрывков, с указанием индекса текущего отрывка. (0 - отрывок
-    с наивысшей оценкой, 1 - второе место и тд)"""
-    async def __call__(self, callback: CallbackQuery) -> bool:
-        if fullmatch(r"next_[012]", callback.data):
-            return True
-        return False
-
-
 class IsTTSBook(BaseFilter):
     """Фильтр сообщений от нажатия кнопки с изображением динамика,
     предназначенной для команды озвучивания текста фрагмента или главы книги.
@@ -85,17 +65,6 @@ class IsTTSExcerpts(BaseFilter):
     В сообщении также указан номер отрывка."""
     async def __call__(self, callback: CallbackQuery) -> bool:
         if match(r"voice-excerpt-\d{1,3}", callback.data):
-            return True
-        return False
-
-
-class IsTTSTopExcerpts(BaseFilter):
-    """Фильтр сообщений от нажатия кнопки с изображением динамика,
-    предназначенной для команды озвучивания популярного отрывка, выдержки.
-    В сообщении также указан индекс позиции отрывка."""
-
-    async def __call__(self, callback: CallbackQuery) -> bool:
-        if match(r"voice-top-excerpt-\d{1,3}", callback.data):
             return True
         return False
 

@@ -1,7 +1,6 @@
 from database.queries import AsyncQuery
-from database.temporary_info import usersdictplaycache, usertextcache
+from database.temporary_info import usersdictplaycache
 from random import sample, randint
-
 
 
 async def load_answers(user_id: int) -> str:
@@ -25,11 +24,3 @@ async def load_answers(user_id: int) -> str:
         else:
             usersdictplaycache[user_id][i] = (obj.term, "wrong")
     return objects[random_num].definition
-
-
-async def load_top_excerpts() -> None:
-    """Загружает 3 самых популярных отрывка в кэш"""
-    lst = await AsyncQuery.select_top_excerpts()
-    if lst:
-        for i, obj in enumerate(lst):
-            usertextcache[i] = obj.excerpt
