@@ -13,6 +13,7 @@ from lexicon.lexicon import LEXICON_dict, LEXICON_default, LEXICON_excerpts, LEX
 from services.cashing import load_answers
 from states.bot_states import FSMStates
 from database.queries import AsyncQuery
+from filters.filters import IsAdmin
 
 
 router = Router()

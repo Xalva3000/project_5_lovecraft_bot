@@ -51,7 +51,6 @@ async def main():
     await dp.start_polling(bot, allowed_updates=dp.resolve_used_update_types()) # =['message', 'callback_query'] или =[]
 
 
-
 if __name__ == "__main__":
     try:
         if os_name == 'nt':

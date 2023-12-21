@@ -9,6 +9,11 @@ class TgBot:
 
 
 @dataclass
+class Admin:
+    admin_id: str
+
+
+@dataclass
 class WebHookSettings:
     bot_token: str
     ngrok_url: str
@@ -26,6 +31,7 @@ class WebHookSettings:
 @dataclass
 class Config:
     tg_bot: TgBot
+    admin: Admin
 
 
 def load_webhook_settings(path: str | None = None) -> WebHookSettings:
@@ -38,4 +44,5 @@ def load_webhook_settings(path: str | None = None) -> WebHookSettings:
 def load_config(path: str | None = None) -> Config:
     env = Env()
     env.read_env(path)
-    return Config(tg_bot=TgBot(token=env("BOT_TOKEN")))
+    return Config(tg_bot=TgBot(token=env("BOT_TOKEN")),
+                  admin=Admin(admin_id=env("ADMIN_ID")))

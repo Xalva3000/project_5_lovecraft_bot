@@ -2,6 +2,7 @@ from re import fullmatch, match, search
 
 from aiogram.filters import BaseFilter
 from aiogram.types import CallbackQuery, Message
+from config.config import load_config
 
 
 class IsPage(BaseFilter):
@@ -103,4 +104,12 @@ class IsDictPattern(BaseFilter):
             return True
         return False
 
+
+class IsAdmin(BaseFilter):
+    """Авторизация админа"""
+    async def __call__(self, callback: CallbackQuery) -> bool:
+        config_info = load_config()
+        if callback.from_user.id == int(config_info.admin.admin_id):
+            return True
+        return False
 

@@ -314,31 +314,7 @@ class AsyncQuery:
         WHERE id = {excerpt_id};"""
         async with async_session() as session:
             result = await session.get(UserTextOrm, excerpt_id)
-            return result.excerpt
-
-    @staticmethod
-    async def update_excerpt_rating(excerpt_id, step="up"):
-        """UPDATE usertext
-        SET rating = rating + {-1 if step == 'up' else 1}
-        WHERE id = {excerpt_id};"""
-        async with async_session() as session:
-            excerpt = await session.get(UserTextOrm, excerpt_id)
-            if step == "up":
-                excerpt.rating += 1
-            elif step == "down":
-                excerpt.rating -= 1
-            await session.commit()
-
-    @staticmethod
-    async def select_top_excerpts():
-        """SELECT *
-        FROM usertext
-        ORDER BY rating DESC
-        LIMIT 3;"""
-        async with async_session() as session:
-            stmt = select(UserTextOrm).order_by(UserTextOrm.rating).limit(3)
-            result = await session.execute(stmt)
-            return result.scalars().all()
+            return result
 
 
     @staticmethod

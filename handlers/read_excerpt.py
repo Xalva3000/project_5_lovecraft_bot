@@ -12,6 +12,7 @@ from keyboards.del_message_kb import create_del_message_keyboard, create_del_aud
 from states.bot_states import FSMStates
 from tts.tts import text_to_speech
 from lexicon.lexicon import LEXICON_excerpts
+from services.next_unordered_number import next_unordered_number
 
 router = Router()
 
@@ -26,12 +27,12 @@ async def process_cancel_excerpt(message: Message, state: FSMContext):
 
 @router.callback_query(IsTTSExcerpts(), StateFilter(FSMStates.reading_excerpts))
 async def process_voice_excerpts(callback: CallbackQuery, bot: Bot):
-    text = await AsyncQuery.select_excerpt(
+    excerpt = await AsyncQuery.select_excerpt(
         int(callback.data.replace("voice-excerpt-", ""))
     )
-    await text_to_speech(text, callback.from_user.id)
+    await text_to_speech(excerpt.excerpt, callback.from_user.id)
     audio = FSInputFile(
-        path=f"tts/{callback.from_user.id}-tts.mp3", filename=f"{text[:13]}.mp3"
+        path=f"tts/{callback.from_user.id}-tts.mp3", filename=f"{excerpt.excerpt[:13]}.mp3"
     )
     async with ChatActionSender.upload_document(chat_id=callback.message.chat.id):
         await bot.send_audio(callback.message.chat.id,
@@ -54,18 +55,40 @@ async def process_add_excerpt(message: Message, state: FSMContext):
         await state.clear()
 
 
-@router.callback_query(F.data.startswith('skip_excerpt_'))
+@router.callback_query(F.data.startswith('next_excerpt_'))
 async def process_next_excerpt_button(callback: CallbackQuery, state: FSMContext):
     await state.set_state(FSMStates.reading_excerpts)
-    previous_excerpt = callback.data.replace('skip_excerpt_', '')
-    tpl_text = await AsyncQuery.select_random_excerpt(int(previous_excerpt))
-    if tpl_text:
+    current_excerpt = int(callback.data.replace('next_excerpt_', ''))
+    all_excerpt_ids = await AsyncQuery.select_all_excerpt_ids()
+
+    next_id = next_unordered_number(lst=all_excerpt_ids, current_number=current_excerpt)
+    next_excerpt = await AsyncQuery.select_excerpt(next_id)
+
+    if next_excerpt:
+        if next_excerpt.id == current_excerpt:
+            return await callback.answer(text=LEXICON_excerpts["only_one_excerpt"])
         await callback.message.edit_text(
-            text=tpl_text[0] + f'\n\n{LEXICON_excerpts["added_by"]} {tpl_text[2]}',
-            reply_markup=create_excerpt_keyboard(tpl_text[1]),
+            text=next_excerpt.excerpt + f'\n\n{LEXICON_excerpts["added_by"]} {next_excerpt.user_name}',
+            reply_markup=create_excerpt_keyboard(next_excerpt.id),
         )
-    else:
-        await callback.answer(text=LEXICON_excerpts["only_one_excerpt"])
+
+
+@router.callback_query(F.data.startswith('prev_excerpt_'))
+async def process_next_excerpt_button(callback: CallbackQuery, state: FSMContext):
+    await state.set_state(FSMStates.reading_excerpts)
+    current_excerpt = int(callback.data.replace('prev_excerpt_', ''))
+    all_excerpt_ids = await AsyncQuery.select_all_excerpt_ids()
+
+    next_id = next_unordered_number(lst=all_excerpt_ids, current_number=current_excerpt, backward=True)
+    next_excerpt = await AsyncQuery.select_excerpt(next_id)
+
+    if next_excerpt:
+        if next_excerpt.id == current_excerpt:
+            return await callback.answer(text=LEXICON_excerpts["only_one_excerpt"])
+        await callback.message.edit_text(
+            text=next_excerpt.excerpt + f'\n\n{LEXICON_excerpts["added_by"]} {next_excerpt.user_name}',
+            reply_markup=create_excerpt_keyboard(next_excerpt.id),
+        )
 
 
 @router.callback_query(F.data.startswith("report_excerpt_"))
