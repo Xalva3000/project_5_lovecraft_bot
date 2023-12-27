@@ -27,7 +27,8 @@ class IsCloseButton(BaseFilter):
     """Фильтр сообщений от нажатия кнопок отмены и возврата в меню."""
     async def __call__(self, callback: CallbackQuery) -> bool:
         buttons = ["close_excerpts", "close_top_excerpts", "cancel_bookmarks",
-                   "close_top_excerpts", "close_book", "close_dct", "return_menu"]
+                   "close_top_excerpts", "close_book", "close_dct",
+                   "close_letter", "return_menu"]
         if callback.data in buttons:
             return True
         return False
@@ -66,6 +67,16 @@ class IsTTSExcerpts(BaseFilter):
     В сообщении также указан номер отрывка."""
     async def __call__(self, callback: CallbackQuery) -> bool:
         if match(r"voice-excerpt-\d{1,3}", callback.data):
+            return True
+        return False
+
+
+class IsTTSLetter(BaseFilter):
+    """Фильтр сообщений от нажатия кнопки с изображением динамика,
+    предназначенной для команды озвучивания письма, выдержки.
+    В сообщении также указан номер письма."""
+    async def __call__(self, callback: CallbackQuery) -> bool:
+        if match(r"voice-letter-\d{1,3}", callback.data):
             return True
         return False
 

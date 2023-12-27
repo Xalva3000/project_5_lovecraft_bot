@@ -10,3 +10,6 @@ class FSMStates(StatesGroup):
     adding_excerpt = State()
     adding_term = State()
     play_dict = State()
+    reading_letters = State()
+    adding_letter = State()
+    edit_letter = State()

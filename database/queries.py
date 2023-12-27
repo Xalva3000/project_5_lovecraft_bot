@@ -1,10 +1,10 @@
 from random import choice
 from typing import Iterable, Optional
 
-from sqlalchemy import delete, select
+from sqlalchemy import delete, select, update
 from sqlalchemy.sql.expression import func
 
-from database.database import MinBookOrm
+from database.database import MinBookOrm, Letter
 from database.database import (KabDictionary, MinFragments, Questionable,
                                UserBookmarksOrm, UsersOrm, UserTextOrm,
                                async_session)
@@ -233,6 +233,8 @@ class AsyncQuery:
 
     @staticmethod
     async def delete_excerpt_by_id(excerpt_id: int):
+        """DELETE FROM usertext
+        WHERE excerpt_id = {excerpt_id}"""
         async with async_session() as session:
             stmt = delete(UserTextOrm).where(UserTextOrm.id == excerpt_id)
             await session.execute(stmt)
@@ -270,6 +272,70 @@ class AsyncQuery:
         async with async_session() as session:
             session.add(UserTextOrm(excerpt=text, user_name=name))
             await session.commit()
+
+    @staticmethod
+    async def select_all_letter_ids():
+        """SELECT id
+        FROM letter"""
+        async with async_session() as session:
+            stmt = select(Letter.id)
+            result = await session.execute(stmt)
+            return result.scalars().all()
+
+    @staticmethod
+    async def select_first_letter():
+        """SELECT *
+        FROM letter
+        WHERE id = 1;"""
+        async with async_session() as session:
+            letter = await session.get(Letter, 1)
+            if letter:
+                return letter
+
+    @staticmethod
+    async def select_letter(letter_id):
+        """SELECT *
+        FROM letter
+        WHERE id = {letter_id};"""
+        async with async_session() as session:
+            result = await session.get(Letter, letter_id)
+            return result
+
+
+    @staticmethod
+    async def insert_user_letter(text, name):
+        """INSERT INTO letter (letter, user_name)
+        VALUES ({text}, {name});"""
+        async with async_session() as session:
+            session.add(Letter(letter=text, user_name=name))
+            await session.commit()
+
+    @staticmethod
+    async def update_letter(letter_id, letter):
+        """update letter
+        set letter = '{text}'
+        where id = {letter_id};"""
+        async with async_session() as session:
+            stmt = update(Letter).where(Letter.id == letter_id).values(letter=letter)
+            await session.execute(stmt)
+            await session.commit()
+
+    @staticmethod
+    async def update_user_current_letter(user_id, new_letter_id):
+        async with async_session() as session:
+            stmt = update(UsersOrm).where(UsersOrm.user_id == user_id).values(current_letter=new_letter_id)
+            await session.execute(stmt)
+            await session.commit()
+
+    @staticmethod
+    async def select_user_current_letter(user_id):
+        """select current_letter
+        from users
+        where user_id = {user_id};"""
+        async with async_session() as session:
+            user = await session.get(UsersOrm, user_id)
+            return user.current_letter
+
 
     @staticmethod
     async def insert_kabdict_definition(dct):

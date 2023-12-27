@@ -1,7 +1,7 @@
 from datetime import datetime
 
 from sqlalchemy import (VARCHAR, BigInteger, ForeignKey, String, Text,
-                        create_engine, text)
+                        create_engine, text, Integer)
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, sessionmaker
 
@@ -26,8 +26,8 @@ class UsersOrm(Base):
 
     user_id: Mapped[int] = mapped_column(BigInteger, primary_key=True, nullable=False)
     name: Mapped[str] = mapped_column(VARCHAR(32), nullable=True)
-    # current_dict_page: Mapped[int] = mapped_column(default=0)
     current_mn_page: Mapped[int] = mapped_column(default=0)
+    current_letter: Mapped[int] = mapped_column(Integer, default=1, server_default='1')
     answers: Mapped[int] = mapped_column(default=0)
     right_answers: Mapped[int] = mapped_column(default=0)
     wrong_answers: Mapped[int] = mapped_column(default=0)
@@ -63,9 +63,19 @@ class UserTextOrm(Base):
     id: Mapped[int] = mapped_column(
         primary_key=True, nullable=False, autoincrement=True
     )
-    excerpt: Mapped[int] = mapped_column(Text, nullable=False)
-    user_name: Mapped[int] = mapped_column(VARCHAR(32))
+    excerpt: Mapped[str] = mapped_column(Text, nullable=False)
+    user_name: Mapped[str] = mapped_column(VARCHAR(32))
     rating: Mapped[int] = mapped_column(nullable=False, default=0)
+
+
+class Letter(Base):
+    __tablename__ = "letter"
+
+    id: Mapped[int] = mapped_column(
+        primary_key=True, nullable=False, autoincrement=True
+    )
+    letter: Mapped[str] = mapped_column(Text, nullable=False)
+    user_name: Mapped[str] = mapped_column(VARCHAR(32))
 
 
 class MinBookOrm(Base):
@@ -92,12 +102,12 @@ class KabDictionary(Base):
     definition: Mapped[str] = mapped_column(Text, nullable=False)
 
 
+
 class Questionable(Base):
     __tablename__ = "questionable"
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     object: Mapped[str] = mapped_column(Text, nullable=False)
-    # note: Mapped[str] = mapped_column(Text)
 
 
 def create_tables():

@@ -6,7 +6,7 @@ from aiogram.fsm.storage.memory import MemoryStorage
 
 from config.config import load_config
 from handlers import (default_handlers, other_handlers, play_dict, read_book,
-                      read_bookmarks, read_excerpt, menu_handlers)
+                      read_bookmarks, read_excerpt, read_letter, menu_handlers)
 from keyboards.main_menu import set_main_menu
 from middlewares.only_string_check import OnlyStringMessage
 from middlewares.throttling import Throttling
@@ -42,6 +42,7 @@ async def main():
     dp.include_router(default_handlers.router)
     dp.include_router(read_book.router)
     dp.include_router(read_excerpt.router)
+    dp.include_router(read_letter.router)
     dp.include_router(read_bookmarks.router)
     dp.include_router(play_dict.router)
     dp.include_router(other_handlers.router)

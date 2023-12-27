@@ -10,6 +10,8 @@ def create_menu_keyboard() -> InlineKeyboardMarkup:
     kb_builder.row(InlineKeyboardButton(text=LEXICON_menu["/bookmarks"], callback_data="/bookmarks"))
     kb_builder.row(InlineKeyboardButton(text=LEXICON_menu["/random_excerpt"], callback_data="/random_excerpt"),
                    InlineKeyboardButton(text=LEXICON_menu["/add_excerpt"], callback_data="/add_excerpt"))
+    kb_builder.row(InlineKeyboardButton(text=LEXICON_menu["/read_letter"], callback_data="/read_letter"),
+                   InlineKeyboardButton(text=LEXICON_menu["/add_letter"], callback_data="/add_letter"))
     kb_builder.row(InlineKeyboardButton(text=LEXICON_menu["/play_dict"], callback_data="/play_dict"),
                    InlineKeyboardButton(text=LEXICON_menu["/add_term"], callback_data="/add_term"))
     kb_builder.row(InlineKeyboardButton(text=LEXICON_menu["/my_info"], callback_data="/my_info"),

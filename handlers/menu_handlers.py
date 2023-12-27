@@ -5,11 +5,12 @@ from aiogram.types import Message, CallbackQuery
 
 from keyboards.bookmarks_kb import create_bookmarks_keyboard
 from keyboards.dictionary_kb import create_dictionary_keyboard
+from keyboards.letter_kb import create_letter_keyboard
 from keyboards.menu_kb import create_menu_keyboard
 from keyboards.pagination_kb import create_pagination_keyboard
 from keyboards.excerpt_kb import create_excerpt_keyboard
 from keyboards.return_menu_kb import create_return_menu_keyboard
-from lexicon.lexicon import LEXICON_dict, LEXICON_default, LEXICON_excerpts, LEXICON_bookmarks
+from lexicon.lexicon import LEXICON_dict, LEXICON_default, LEXICON_excerpts, LEXICON_bookmarks, LEXICON_letters
 from services.cashing import load_answers
 from states.bot_states import FSMStates
 from database.queries import AsyncQuery
@@ -114,6 +115,32 @@ async def process_offer_excerpt_button(callback: CallbackQuery, state: FSMContex
     """Хендлер кнопки добавления отрывка"""
     await state.set_state(FSMStates.adding_excerpt)
     await callback.message.edit_text(text=LEXICON_excerpts["add_excerpt"],
+                                     reply_markup=create_return_menu_keyboard())
+
+
+@router.callback_query(F.data == "/read_letter")
+async def process_first_letter_button(callback: CallbackQuery, state: FSMContext):
+    """Хендлер кнопки письма"""
+    current_letter_id = await AsyncQuery.select_user_current_letter(callback.from_user.id)
+    # запрос кортежа (текст, порядковый номер, имя добавившего)
+    letter = await AsyncQuery.select_letter(current_letter_id)
+    if letter:
+        await state.set_state(FSMStates.reading_letters)
+        await callback.message.edit_text(
+            text=letter.letter + f'\n\n{LEXICON_letters["added_by"]} {letter.user_name}',
+            reply_markup=create_letter_keyboard(letter_id=letter.id))
+    else:
+        await callback.message.edit_text(
+            text=LEXICON_letters["no_letters"],
+            reply_markup=create_return_menu_keyboard()
+        )
+
+
+@router.callback_query(F.data == "/add_letter")
+async def process_offer_letter_button(callback: CallbackQuery, state: FSMContext):
+    """Хендлер кнопки добавления письма"""
+    await state.set_state(FSMStates.adding_letter)
+    await callback.message.edit_text(text=LEXICON_letters["add_letter"],
                                      reply_markup=create_return_menu_keyboard())
 
 
