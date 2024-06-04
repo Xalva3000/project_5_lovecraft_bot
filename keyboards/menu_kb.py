@@ -8,7 +8,7 @@ def create_menu_keyboard() -> InlineKeyboardMarkup:
 
     kb_builder.row(InlineKeyboardButton(text=LEXICON_menu["/read_book"], callback_data="/read_book"))
     kb_builder.row(InlineKeyboardButton(text=LEXICON_menu["/bookmarks"], callback_data="/bookmarks"))
-    kb_builder.row(InlineKeyboardButton(text=LEXICON_menu["/random_excerpt"], callback_data="/random_excerpt"),
+    kb_builder.row(InlineKeyboardButton(text=LEXICON_menu["/read_excerpt"], callback_data="/read_excerpt"),
                    InlineKeyboardButton(text=LEXICON_menu["/add_excerpt"], callback_data="/add_excerpt"))
     kb_builder.row(InlineKeyboardButton(text=LEXICON_menu["/read_letter"], callback_data="/read_letter"),
                    InlineKeyboardButton(text=LEXICON_menu["/add_letter"], callback_data="/add_letter"))

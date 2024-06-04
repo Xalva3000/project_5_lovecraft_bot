@@ -26,7 +26,10 @@ class UsersOrm(Base):
 
     user_id: Mapped[int] = mapped_column(BigInteger, primary_key=True, nullable=False)
     name: Mapped[str] = mapped_column(VARCHAR(32), nullable=True)
-    current_mn_page: Mapped[int] = mapped_column(default=0)
+    current_book_page: Mapped[int] = mapped_column(default=1, server_default='1')
+    # current_psalter_page: Mapped[int] = mapped_column(default=0)
+    # current_joke: Mapped[int] = mapped_column(default=0)
+    current_excerpt: Mapped[int] = mapped_column(Integer, default=1, server_default='1')
     current_letter: Mapped[int] = mapped_column(Integer, default=1, server_default='1')
     answers: Mapped[int] = mapped_column(default=0)
     right_answers: Mapped[int] = mapped_column(default=0)
@@ -43,7 +46,15 @@ class UsersOrm(Base):
         return f"{self.__class__.__name__} {self.user_id}, {self.name}"
 
 
-class UserBookmarksOrm(Base):
+class Book(Base):
+    __tablename__ = "book"
+
+    page_id: Mapped[int] = mapped_column(primary_key=True, nullable=False)
+    # fragment_id: Mapped[int] = mapped_column(nullable=False)
+    page_text: Mapped[str] = mapped_column(nullable=False)
+
+
+class UserBookmarks(Base):
     __tablename__ = "userbookmarks"
 
     id: Mapped[int] = mapped_column(
@@ -78,29 +89,13 @@ class Letter(Base):
     user_name: Mapped[str] = mapped_column(VARCHAR(32))
 
 
-class MinBookOrm(Base):
-    __tablename__ = "min_book"
-
-    page_id: Mapped[int] = mapped_column(primary_key=True, nullable=False)
-    fragment_id: Mapped[int] = mapped_column(nullable=False)
-    page_text: Mapped[str] = mapped_column(nullable=False)
-
-
-class MinFragments(Base):
-    __tablename__ = "min_fragments"
-
-    fragment_id: Mapped[int] = mapped_column(primary_key=True, nullable=False)
-    fragment: Mapped[str] = mapped_column(nullable=False)
-
-
-class KabDictionary(Base):
-    __tablename__ = "kabdictionary"
+class Dictionary(Base):
+    __tablename__ = "dictionary"
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     term: Mapped[str] = mapped_column(String(64), nullable=False)
     translation: Mapped[str] = mapped_column(String(64), nullable=True)
     definition: Mapped[str] = mapped_column(Text, nullable=False)
-
 
 
 class Questionable(Base):
@@ -115,3 +110,51 @@ def create_tables():
     # Base.metadata.drop_all(sync_engine)
     Base.metadata.create_all(sync_engine, checkfirst=True)
     async_engine.echo = True
+
+#
+# class NewWordsDictionary(Base):
+#     __tablename__ = "new_words_dictionary"
+#
+#     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+#     term: Mapped[str] = mapped_column(String(64), nullable=False, unique=True)
+#     translation: Mapped[str] = mapped_column(String(64), nullable=True)
+#     definition: Mapped[str] = mapped_column(Text, nullable=False)
+
+
+# class MinFragments(Base):
+#     __tablename__ = "min_fragments"
+#
+#     fragment_id: Mapped[int] = mapped_column(primary_key=True, nullable=False)
+#     fragment: Mapped[str] = mapped_column(nullable=False)
+#
+# class EnglishBook(Base):
+#     __tablename__ = "eng_book"
+#
+#     page_id: Mapped[int] = mapped_column(primary_key=True, nullable=False)
+#     page_text: Mapped[str] = mapped_column(nullable=False)
+
+#
+# class Joke(Base):
+#     __tablename__ = 'joke'
+#
+#     id: Mapped[int] = mapped_column(primary_key=True, nullable=False, autoincrement=True)
+#     joke: Mapped[str] = mapped_column(Text, nullable=False)
+#     user_name: Mapped[str] = mapped_column(VARCHAR(32))
+
+
+# class PsalterPages(Base):
+#     __tablename__ = 'psalter_pages'
+#
+#     page_id: Mapped[int] = mapped_column(primary_key=True, nullable=False, autoincrement=True)
+#     psalm_id: Mapped[int] = mapped_column(nullable=False)
+#     psalm_text: Mapped[str] = mapped_column(Text, nullable=False)
+#
+#
+# class PsalterPsalms(Base):
+#     __tablename__ = "psalter_psalms"
+#
+#     psalm_id: Mapped[int] = mapped_column(primary_key=True, nullable=False)
+#     psalm_text: Mapped[str] = mapped_column(nullable=False)
+
+
+

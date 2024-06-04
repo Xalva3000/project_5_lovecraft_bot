@@ -6,21 +6,21 @@ from config.config import load_config
 
 
 class IsPage(BaseFilter):
-    """Фильтр сообщений вида /стр 1 (до фиксированного значения 251 для этого бота)."""
+    """Фильтр сообщений вида /стр 1 (до максимального значения)."""
     async def __call__(self, message: Message) -> bool:
-        match_obj = fullmatch(r"/стр (\d{1,3})", message.text)
-        if match_obj and int(match_obj.group(1)) in range(1, 252):
+        match_obj = fullmatch(r"/стр (\d{1,4})", message.text)
+        if match_obj and int(match_obj.group(1)) in range(1, 1493):
             return True
         return False
 
 
-class IsChapter(BaseFilter):
-    """Фильтр сообщений вида /фраг 1 (до фиксированного значения 150 для этого бота)."""
-    async def __call__(self, message: Message) -> bool:
-        match_obj = fullmatch(r"/фраг (\d{1,3})", message.text)
-        if match_obj and int(match_obj.group(1)) in range(1, 151):
-            return True
-        return False
+# class IsChapter(BaseFilter):
+#     """Фильтр сообщений вида /фраг 1 (до фиксированного значения 150 для этого бота)."""
+#     async def __call__(self, message: Message) -> bool:
+#         match_obj = fullmatch(r"/фраг (\d{1,3})", message.text)
+#         if match_obj and int(match_obj.group(1)) in range(1, 151):
+#             return True
+#         return False
 
 
 class IsCloseButton(BaseFilter):
@@ -46,7 +46,7 @@ class IsRatio(BaseFilter):
     """Фильтр сообщений от нажатия кнопки отношения текущей страницы
     к общему кол-ву страниц в книге. (Кнопка для сохранения закладки)"""
     async def __call__(self, callback: CallbackQuery) -> bool:
-        if search(r"\d+/\d{1,3}", callback.data):
+        if search(r"\d+/\d{1,4}", callback.data):
             return True
         return False
 
@@ -56,7 +56,7 @@ class IsTTSBook(BaseFilter):
     предназначенной для команды озвучивания текста фрагмента или главы книги.
     В сообщении также указан номер фрагмента."""
     async def __call__(self, callback: CallbackQuery) -> bool:
-        if match(r"voice-\d{1,3}", callback.data):
+        if match(r"voice-\d{1,4}", callback.data):
             return True
         return False
 
@@ -92,7 +92,7 @@ class IsDelBookmarkCallbackData(BaseFilter):
     """Фильтр сообщений от нажатия кнопки удаления закладки."""
 
     async def __call__(self, callback: CallbackQuery) -> bool:
-        if fullmatch(r"\d{1,3}del", callback.data):
+        if fullmatch(r"\d{1,4}del", callback.data):
             return True
         return False
 

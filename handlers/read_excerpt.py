@@ -47,10 +47,11 @@ async def process_add_excerpt(message: Message, state: FSMContext):
         await AsyncQuery.insert_user_excerpt(message.text, message.from_user.first_name)
     except Exception as e:
         print(e)
-        await message.answer(text=LEXICON_excerpts["adding_error"])
+        await message.answer(text=LEXICON_excerpts["adding_error"],
+                             reply_markup=create_del_message_keyboard())
     else:
         await message.answer(text=LEXICON_excerpts["adding_success"],
-                             reply_markup=create_return_menu_keyboard())
+                             reply_markup=create_del_message_keyboard())
     finally:
         await state.clear()
 
@@ -63,6 +64,7 @@ async def process_next_excerpt_button(callback: CallbackQuery, state: FSMContext
 
     next_id = next_unordered_number(lst=all_excerpt_ids, current_number=current_excerpt)
     next_excerpt = await AsyncQuery.select_excerpt(next_id)
+    await AsyncQuery.update_user_current_excerpt(callback.from_user.id, next_id)
 
     if next_excerpt:
         if next_excerpt.id == current_excerpt:
@@ -81,6 +83,7 @@ async def process_next_excerpt_button(callback: CallbackQuery, state: FSMContext
 
     next_id = next_unordered_number(lst=all_excerpt_ids, current_number=current_excerpt, backward=True)
     next_excerpt = await AsyncQuery.select_excerpt(next_id)
+    await AsyncQuery.update_user_current_excerpt(callback.from_user.id, next_id)
 
     if next_excerpt:
         if next_excerpt.id == current_excerpt:
@@ -91,14 +94,30 @@ async def process_next_excerpt_button(callback: CallbackQuery, state: FSMContext
         )
 
 
-@router.callback_query(F.data.startswith("report_excerpt_"))
-async def process_report_excerpt_button(callback: CallbackQuery):
-    await AsyncQuery.insert_questionable_excerpt(callback.data)
-    await callback.answer(text=LEXICON_excerpts["report_excerpt"])
+# @router.callback_query(F.data.startswith("report_excerpt_"))
+# async def process_report_excerpt_button(callback: CallbackQuery):
+#     await AsyncQuery.insert_questionable_excerpt(callback.data)
+#     await callback.answer(text=LEXICON_excerpts["report_excerpt"])
 
 
-@router.callback_query(F.data.startswith("del_excerpt_"))
-async def process_report_excerpt_button(callback: CallbackQuery):
-    excerpt_id = callback.data.replace('del_excerpt_', '')
-    await AsyncQuery.delete_excerpt_by_id(int(excerpt_id))
-    await callback.answer(text=LEXICON_excerpts["excerpt_deleted"])
+@router.callback_query(F.data.startswith("edit_excerpt_"))
+async def process_edit_excerpt_button(callback: CallbackQuery, state: FSMContext):
+    await state.set_state(FSMStates.edit_excerpt)
+    await callback.message.edit_text(text=LEXICON_excerpts["edit_excerpt"],
+                                     reply_markup=create_return_menu_keyboard())
+
+
+@router.message(StateFilter(FSMStates.edit_excerpt))
+async def process_edit_letter(message: Message, state: FSMContext):
+    try:
+        current_excerpt = await AsyncQuery.select_user_current_excerpt(message.from_user.id)
+        await AsyncQuery.update_excerpt(excerpt_id=current_excerpt, excerpt=message.text)
+    except Exception as e:
+        print(e)
+        await message.answer(text=LEXICON_excerpts["edit_error"],
+                             reply_markup=create_del_message_keyboard())
+    else:
+        await message.answer(text=LEXICON_excerpts["edit_success"],
+                             reply_markup=create_del_message_keyboard())
+    finally:
+        await state.clear()

@@ -10,7 +10,8 @@ from keyboards.menu_kb import create_menu_keyboard
 from keyboards.pagination_kb import create_pagination_keyboard
 from keyboards.excerpt_kb import create_excerpt_keyboard
 from keyboards.return_menu_kb import create_return_menu_keyboard
-from lexicon.lexicon import LEXICON_dict, LEXICON_default, LEXICON_excerpts, LEXICON_bookmarks, LEXICON_letters
+from lexicon.lexicon import LEXICON_dict, LEXICON_default, LEXICON_excerpts, LEXICON_bookmarks, LEXICON_letters, \
+    LEXICON_reading_book
 from services.cashing import load_answers
 from states.bot_states import FSMStates
 from database.queries import AsyncQuery
@@ -45,9 +46,14 @@ async def process_read_book_button(callback: CallbackQuery, state: FSMContext):
     указанной в БД и клавиатуры пагинации"""
     await state.set_state(FSMStates.reading_book)
     page = await AsyncQuery.select_user_book_page(callback.from_user.id)
-    tpl_page = await AsyncQuery.select_book_page(page)
+    page_text = await AsyncQuery.select_book_page(page)
+    max_page = await AsyncQuery.select_max_book_page()
+    if page_text:
+        pass
+    else:
+        page_text = LEXICON_reading_book['no_book_loaded']
     await callback.message.edit_text(
-        text=tpl_page[0], reply_markup=create_pagination_keyboard(page, tpl_page[1])
+        text=page_text, reply_markup=create_pagination_keyboard(page, max_page)
     )
 
 
@@ -93,16 +99,15 @@ async def process_bookmarks_button(callback: CallbackQuery, state: FSMContext):
                                          reply_markup=create_return_menu_keyboard())
 
 
-@router.callback_query(F.data == "/random_excerpt")
-async def process_random_excerpt_button(callback: CallbackQuery, state: FSMContext):
-    """Хендлер кнопки случайного отрывка"""
-    # запрос кортежа (текст, порядковый номер, имя добавившего)
-    tpl_text = await AsyncQuery.select_random_excerpt()
-    if tpl_text:
+@router.callback_query(F.data == "/read_excerpt")
+async def process_read_excerpt_button(callback: CallbackQuery, state: FSMContext):
+    current_excerpt_id = await AsyncQuery.select_user_current_excerpt(callback.from_user.id)
+    excerpt = await AsyncQuery.select_excerpt_by_id(current_excerpt_id)
+    if excerpt:
         await state.set_state(FSMStates.reading_excerpts)
         await callback.message.edit_text(
-            text=tpl_text[0] + f'\n\n{LEXICON_excerpts["added_by"]} {tpl_text[2]}',
-            reply_markup=create_excerpt_keyboard(tpl_text[1]))
+            text=excerpt.excerpt + f'\n\n{LEXICON_excerpts["added_by"]} {excerpt.user_name}',
+            reply_markup=create_excerpt_keyboard(excerpt.id))
     else:
         await callback.message.edit_text(
             text=LEXICON_excerpts["no_excerpts"],

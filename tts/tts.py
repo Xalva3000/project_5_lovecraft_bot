@@ -15,3 +15,10 @@ async def text_to_speech_book(text, fragment_id):
         lang="ru",
     )
     tts.save(f"tts/book/{fragment_id}-tts.mp3")
+
+async def text_to_speech_book_eng(text, page_id):
+    tts = gtts.gTTS(
+        text,
+        lang="en",
+    )
+    tts.save(f"tts/book/{page_id}-tts.mp3")

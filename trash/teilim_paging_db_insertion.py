@@ -1,19 +1,19 @@
 import asyncio
 import re
 
-from database.queries import AsyncQuery
+from database.psalter_query import insert_book_fragments, insert_book_pages
 
 # from pprint import pprint
+
 
 
 # добавляет спец символ в конкретный файл и по нему разделяет текст на главы
 def fragmentation(path) -> list[str]:
     with open(path, "rt", encoding="UTF-8") as file_in:
         content = file_in.read()
-    regex = r"Фрагмент"
-    add_spec_symbol = re.sub(regex, "$$ Фрагмент", content)
-    regex_split = r"\$\$ "
-    new_content = re.split(regex_split, add_spec_symbol)
+
+    add_spec_symbol = re.sub(r"(\d+)", "$$ Псалом \\1", content)
+    new_content = re.split(r"\$\$ ", add_spec_symbol)
     return new_content
 
 
@@ -70,23 +70,32 @@ def prepare_fragmented_book(fragmented_book: list, dct: dict, page_size):
             indent = 0
 
 
-
-
 PAGE_SIZE = 1050
 book = {}
-book_path = "books/book.txt"
+book_path = 'books/psalter.txt'
 book_name = ""
 
 
 async def paging():
     fragmented_book: list[str] = fragmentation(book_path)
     dct_fragmented_book = {i: text for i, text in enumerate(fragmented_book)}
-    await AsyncQuery.insert_book_fragments(dct_fragmented_book)
+    await insert_book_fragments(dct_fragmented_book)
 
     prepare_fragmented_book(fragmented_book, book, PAGE_SIZE)
-    await AsyncQuery.insert_book_pages(book)
-    await AsyncQuery.select_book_fragment(3)
+    await insert_book_pages(book)
+    # await AsyncQuery.select_book_fragment(3)
+
+def paging_sync():
+    fragmented_book: list[str] = fragmentation(book_path)
+    dct_fragmented_book = {i: text for i, text in enumerate(fragmented_book)}
+    insert_book_fragments(dct_fragmented_book)
+
+    prepare_fragmented_book(fragmented_book, book, PAGE_SIZE)
+    insert_book_pages(book)
+
 
 
 if __name__ == "__main__":
-    asyncio.run(paging())
+    # asyncio.run(paging())
+    paging_sync()
+

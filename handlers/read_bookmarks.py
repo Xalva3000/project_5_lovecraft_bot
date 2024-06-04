@@ -50,11 +50,12 @@ async def process_cancel_message(message: Message, state: FSMContext):
 @router.callback_query(IsDigitCallbackData(), StateFilter(FSMStates.bookmarks_list))
 async def process_bookmark_press(callback: CallbackQuery, state: FSMContext):
     await state.set_state(FSMStates.reading_book)
-    tpl_text = await AsyncQuery.select_book_page(int(callback.data))
+    max_page = await AsyncQuery.select_max_book_page()
+    page_text = await AsyncQuery.select_book_page(int(callback.data))
     await AsyncQuery.update_users_book_page(callback.from_user.id, int(callback.data))
     await callback.message.edit_text(
-        text=tpl_text[0],
-        reply_markup=create_pagination_keyboard(int(callback.data), tpl_text[1]),
+        text=page_text,
+        reply_markup=create_pagination_keyboard(int(callback.data), max_page),
     )
     await callback.answer()
 

@@ -4,9 +4,7 @@ from typing import Iterable, Optional
 from sqlalchemy import delete, select, update
 from sqlalchemy.sql.expression import func
 
-from database.database import MinBookOrm, Letter
-from database.database import (KabDictionary, MinFragments, Questionable,
-                               UserBookmarksOrm, UsersOrm, UserTextOrm,
+from database.database import (Book, UserBookmarks, Letter, Dictionary, Questionable, UsersOrm, UserTextOrm,
                                async_session)
 from database.temporary_info import usersdictplaycache
 
@@ -41,7 +39,7 @@ class AsyncQuery:
         WHERE user_id = {u_id};"""
         async with async_session() as session:
             result = await session.get(UsersOrm, u_id)
-            return result.current_mn_page
+            return result.current_book_page
 
     @staticmethod
     async def update_users_book_page(u_id: int, new_page: str | int = "forward"):
@@ -51,11 +49,11 @@ class AsyncQuery:
         async with async_session() as session:
             user = await session.get(UsersOrm, u_id)
             if new_page == "forward":
-                user.current_mn_page += 1
-            elif new_page == "backward" and user.current_mn_page > 0:
-                user.current_mn_page -= 1
-            elif isinstance(new_page, int) and new_page >= 0:
-                user.current_mn_page = new_page
+                user.current_book_page += 1
+            elif new_page == "backward" and user.current_book_page > 1:
+                user.current_book_page -= 1
+            elif isinstance(new_page, int) and new_page >= 1:
+                user.current_book_page = new_page
             await session.commit()
 
     @staticmethod
@@ -107,12 +105,12 @@ class AsyncQuery:
 
     @staticmethod
     async def insert_book_pages(book: dict[int:tuple]):
-        """INSERT INTO min_book (page_id, fragment_id, page_text)
-        VALUES ({key}, {tpl[0]}, {tpl[1]});"""
+        """INSERT INTO min_book (page_id, page_text)
+        VALUES ({key}, {page_text});"""
         async with async_session() as session:
-            for key, tpl in book.items():
+            for key, page_text in book.items():
                 session.add(
-                    MinBookOrm(page_id=key, fragment_id=tpl[0], page_text=tpl[1])
+                    Book(page_id=key, page_text=page_text)
                 )
             await session.commit()
 
@@ -123,12 +121,15 @@ class AsyncQuery:
         WHERE page_id {= page or in set(pages)};"""
         async with async_session() as session:
             if isinstance(page, int):
-                result = await session.get(MinBookOrm, page)
-                return result.page_text, result.fragment_id
+                result = await session.get(Book, page)
+                if result:
+                    return result.page_text
+                else:
+                    return None
             else:
                 stmt = (
-                    select(MinBookOrm)
-                    .where(MinBookOrm.page_id.in_(set(page)))
+                    select(Book)
+                    .where(Book.page_id.in_(set(page)))
                     .limit(15)
                 )
                 result = await session.execute(stmt)
@@ -141,7 +142,7 @@ class AsyncQuery:
         """SELECT max(page_id)
         FROM min_book;"""
         async with async_session() as session:
-            stmt = select(func.max(MinBookOrm.page_id))
+            stmt = select(func.max(Book.page_id))
             result = await session.execute(stmt)
             return result.scalars().one()
 
@@ -150,7 +151,7 @@ class AsyncQuery:
         """INSERT INTO userbookmarks(user_id, page)
         VALUES ({user_id}, {page});"""
         async with async_session() as session:
-            session.add(UserBookmarksOrm(user_id=user_id, page=page))
+            session.add(UserBookmarks(user_id=user_id, page=page))
             await session.commit()
 
 
@@ -160,7 +161,7 @@ class AsyncQuery:
         FROM userbookmarks
         WHERE user_id = {user_id};"""
         async with async_session() as session:
-            stmt = select(UserBookmarksOrm.page).filter_by(user_id=user_id)
+            stmt = select(UserBookmarks.page).filter_by(user_id=user_id)
             result = await session.execute(stmt)
             return result.scalars().fetchall()
 
@@ -170,57 +171,57 @@ class AsyncQuery:
         FROM userbookmarks
         WHERE user_id = {user_id} AND page = {page};"""
         async with async_session() as session:
-            stmt = delete(UserBookmarksOrm).filter_by(user_id=user_id, page=page)
+            stmt = delete(UserBookmarks).filter_by(user_id=user_id, page=page)
             await session.execute(stmt)
             await session.commit()
 
-    @staticmethod
-    async def insert_book_fragments(book: dict[int:tuple]):
-        """INSERT INTO min_fragments (fragment_id, fragment)
-        VALUES ({key}, {value});"""
-        async with async_session() as session:
-            for key, value in book.items():
-                session.add(MinFragments(fragment_id=key, fragment=value))
-            await session.commit()
+    # @staticmethod
+    # async def insert_book_fragments(book: dict[int:tuple]):
+    #     """INSERT INTO min_fragments (fragment_id, fragment)
+    #     VALUES ({key}, {value});"""
+    #     async with async_session() as session:
+    #         for key, value in book.items():
+    #             session.add(MinFragments(fragment_id=key, fragment=value))
+    #         await session.commit()
 
-    @staticmethod
-    async def select_book_fragment(fragment_num):
-        """SELECT *
-        FROM min_fragments
-        WHERE fragment_id = fragment_num;"""
-        async with async_session() as session:
-            result = await session.get(MinFragments, fragment_num)
-            return result.fragment
+    # @staticmethod
+    # async def select_book_fragment(fragment_num):
+    #     """SELECT *
+    #     FROM min_fragments
+    #     WHERE fragment_id = fragment_num;"""
+    #     async with async_session() as session:
+    #         result = await session.get(MinFragments, fragment_num)
+    #         return result.fragment
+    #
+    # @staticmethod
+    # async def select_fragment_id(page_id):
+    #     """SELECT fragment_id
+    #     FROM min_book
+    #     WHERE page_id = {page_id};"""
+    #     async with async_session() as session:
+    #         result = await session.get(MinBookOrm, page_id)
+    #         return result.fragment_id
 
-    @staticmethod
-    async def select_fragment_id(page_id):
-        """SELECT fragment_id
-        FROM min_book
-        WHERE page_id = {page_id};"""
-        async with async_session() as session:
-            result = await session.get(MinBookOrm, page_id)
-            return result.fragment_id
+    # @staticmethod
+    # async def select_page_of_chapter(fragment_id):
+    #     """SELECT min(page_id)
+    #     FROM min_book
+    #     WHERE fragment_id = {fragment_id};"""
+    #     async with async_session() as session:
+    #         stmt = select(func.min(MinBookOrm.page_id)).where(MinBookOrm.fragment_id == fragment_id)
+    #         result = await session.execute(stmt)
+    #         return result.scalar()
 
-    @staticmethod
-    async def select_page_of_chapter(fragment_id):
-        """SELECT min(page_id)
-        FROM min_book
-        WHERE fragment_id = {fragment_id};"""
-        async with async_session() as session:
-            stmt = select(func.min(MinBookOrm.page_id)).where(MinBookOrm.fragment_id == fragment_id)
-            result = await session.execute(stmt)
-            return result.scalar()
-
-    @staticmethod
-    async def select_all_fragments():
-        """SELECT fragment
-        FROM min_fragments
-        ORDER BY fragment_id"""
-        # на данный момент не используется
-        async with async_session() as session:
-            stmt = select(MinFragments.fragment).order_by(MinFragments.fragment_id)
-            result = await session.execute(stmt)
-            return result.scalars().all()
+    # @staticmethod
+    # async def select_all_fragments():
+    #     """SELECT fragment
+    #     FROM min_fragments
+    #     ORDER BY fragment_id"""
+    #     # на данный момент не используется
+    #     async with async_session() as session:
+    #         stmt = select(MinFragments.fragment).order_by(MinFragments.fragment_id)
+    #         result = await session.execute(stmt)
+    #         return result.scalars().all()
 
     @staticmethod
     async def select_all_excerpt_ids():
@@ -266,12 +267,53 @@ class AsyncQuery:
 
 
     @staticmethod
+    async def select_user_current_excerpt(user_id):
+        """select current_excerpt
+        from users
+        where user_id = {user_id};"""
+        async with async_session() as session:
+            user = await session.get(UsersOrm, user_id)
+            return user.current_excerpt
+
+
+    @staticmethod
+    async def update_user_current_excerpt(user_id, new_excerpt_id):
+        """UPDATE users
+        SET current_excerpt = {new_excerpt_id}
+        where user_id = {user_id};"""
+        async with async_session() as session:
+            user = await session.get(UsersOrm, user_id)
+            user.current_excerpt = new_excerpt_id
+            await session.commit()
+
+
+    @staticmethod
+    async def select_excerpt_by_id(excerpt_id):
+        """SELECT *
+        FROM user_text
+        WHERE id = {excerpt_id};"""
+        async with async_session() as session:
+            result = await session.get(UserTextOrm, excerpt_id)
+            return result
+
+    @staticmethod
     async def insert_user_excerpt(text, name):
         """INSERT INTO usertext (excerpt, user_name)
         VALUES ({text}, {name});"""
         async with async_session() as session:
             session.add(UserTextOrm(excerpt=text, user_name=name))
             await session.commit()
+
+    @staticmethod
+    async def update_excerpt(excerpt_id, excerpt):
+        """update usertext
+        set excerpt = '{text}'
+        where id = {excerpt_id};"""
+        async with async_session() as session:
+            stmt = update(UserTextOrm).where(UserTextOrm.id == excerpt_id).values(excerpt=excerpt)
+            await session.execute(stmt)
+            await session.commit()
+
 
     @staticmethod
     async def select_all_letter_ids():
@@ -338,13 +380,13 @@ class AsyncQuery:
 
 
     @staticmethod
-    async def insert_kabdict_definition(dct):
+    async def insert_dict_definition(dct):
         """Добавляет в словарь dict({dct}).
-        INSERT INTO kabdictionary (term, translation, definition)
+        INSERT INTO dictionary (term, translation, definition)
         VALUES ({term}, {translation}, {definition});"""
         async with async_session() as session:
             for term, translation, definition in dct.values():
-                session.add(KabDictionary(term=term,
+                session.add(Dictionary(term=term,
                                           translation=translation,
                                           definition=definition
                                           ))
@@ -353,11 +395,11 @@ class AsyncQuery:
     @staticmethod
     async def insert_term(term_tpl):
         """Добавляет в словарь строку: термин, перевод, объяснение.
-        INSERT INTO kabdictionary (term, translation, definition)
+        INSERT INTO dictionary (term, translation, definition)
         VALUES ({term}, {translation}, {definition});"""
         async with async_session() as session:
             term, translation, definition = term_tpl
-            session.add(KabDictionary(term=term,
+            session.add(Dictionary(term=term,
                                       translation=translation,
                                       definition=definition
                                       ))
@@ -367,9 +409,9 @@ class AsyncQuery:
     @staticmethod
     async def select_all_dict_ids():
         """SELECT id
-        FROM kabdictionary;"""
+        FROM dictionary;"""
         async with async_session() as session:
-            stmt = select(KabDictionary.id)
+            stmt = select(Dictionary.id)
             result = await session.execute(stmt)
             return result.scalars().all()
 
@@ -386,10 +428,10 @@ class AsyncQuery:
     @staticmethod
     async def select_specific_terms(lst: list[int]):
         """SELECT *
-        FROM kabdictionary
+        FROM dictionary
         WHERE id in ({lst});"""
         async with async_session() as session:
-            stmt = select(KabDictionary).where(KabDictionary.id.in_(lst))
+            stmt = select(Dictionary).where(Dictionary.id.in_(lst))
             result = await session.execute(stmt)
             return result.scalars().all()
 

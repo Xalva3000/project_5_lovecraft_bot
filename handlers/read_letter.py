@@ -96,7 +96,6 @@ async def process_next_letter_button(callback: CallbackQuery, state: FSMContext)
 
 @router.callback_query(F.data == "edit_letter")
 async def process_edit_letter_button(callback: CallbackQuery, state: FSMContext):
-    """Хендлер кнопки добавления письма"""
     await state.set_state(FSMStates.edit_letter)
     await callback.message.edit_text(text=LEXICON_letters["edit_letter"],
                                      reply_markup=create_return_menu_keyboard())
