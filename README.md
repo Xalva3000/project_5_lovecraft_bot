@@ -1,1 +1,1 @@
-"# project_5_kabbot" 
+"# project_5_lovecraft_bot" 
