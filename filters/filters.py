@@ -106,6 +106,14 @@ class IsAnswer(BaseFilter):
         return False
 
 
+class IsEngTranslation(BaseFilter):
+    """Фильтр запроса на перевод"""
+    async def __call__(self, message: Message) -> bool:
+        if search(r"/te ", message.text):
+            return True
+        return False
+
+
 class IsDictPattern(BaseFilter):
     """Фильтр сообщений отправленных пользователем в состоянии ввода
     нового термина в игре 'Словарь'."""

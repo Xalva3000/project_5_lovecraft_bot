@@ -95,7 +95,7 @@ async def process_insert_user_term(message: Message, state: FSMContext):
     term_tpl = tuple(message.text.split("$$"))
     await AsyncQuery.insert_term(term_tpl)
     await message.answer(text=LEXICON_dict["add_success"],
-                         reply_markup=create_return_menu_keyboard())
+                         reply_markup=create_del_message_keyboard())
 
 
 @router.message(Command(commands=["reset_stats"]), StateFilter(FSMStates.play_dict))

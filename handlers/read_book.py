@@ -5,10 +5,11 @@ from aiogram.types import CallbackQuery, FSInputFile, Message
 from aiogram.utils.chat_action import ChatActionSender
 
 from database.queries import AsyncQuery
-from filters.filters import IsPage, IsRatio, IsTTSBook
+from filters.filters import IsPage, IsRatio, IsTTSBook, IsEngTranslation
 from keyboards.del_message_kb import create_del_message_keyboard
 from keyboards.pagination_kb import create_pagination_keyboard
 from lexicon.lexicon import LEXICON_reading_book, LEXICON_bookmarks
+from services.translation import translate_eng
 from states.bot_states import FSMStates
 from tts.tts import text_to_speech_book_eng
 from os import listdir
@@ -142,6 +143,17 @@ async def process_voice_book(callback: CallbackQuery, bot: Bot):
             reply_markup=create_del_message_keyboard()
         )
     return
+
+
+@router.message(IsEngTranslation(), StateFilter(FSMStates.reading_book))
+async def process_cancel_message(message: Message, state: FSMContext):
+    """Хендлер команды /te, запрос на перевод. Во время чтения книги."""
+    if isinstance(message.text, str):
+        translation = translate_eng(message.text.removeprefix('/te '))
+    else:
+        translation = LEXICON_reading_book['error']
+    await message.answer(text=translation,
+                         reply_markup=create_del_message_keyboard())
 
 
 # @router.message(IsChapter())
