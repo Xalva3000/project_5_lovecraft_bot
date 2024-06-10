@@ -14,15 +14,6 @@ class IsPage(BaseFilter):
         return False
 
 
-# class IsChapter(BaseFilter):
-#     """Фильтр сообщений вида /фраг 1 (до фиксированного значения 150 для этого бота)."""
-#     async def __call__(self, message: Message) -> bool:
-#         match_obj = fullmatch(r"/фраг (\d{1,3})", message.text)
-#         if match_obj and int(match_obj.group(1)) in range(1, 151):
-#             return True
-#         return False
-
-
 class IsCloseButton(BaseFilter):
     """Фильтр сообщений от нажатия кнопок отмены и возврата в меню."""
     async def __call__(self, callback: CallbackQuery) -> bool:
@@ -117,9 +108,16 @@ class IsEngTranslation(BaseFilter):
 class IsDictPattern(BaseFilter):
     """Фильтр сообщений отправленных пользователем в состоянии ввода
     нового термина в игре 'Словарь'."""
-
     async def __call__(self, message: Message) -> bool:
         if search(r"\$\$", message.text):
+            return True
+        return False
+
+
+class IsNewTermPattern(BaseFilter):
+    """Фильтр ручного ввода нового термина"""
+    async def __call__(self, message: Message) -> bool:
+        if fullmatch(r"/nt .+\$\$.+\$\$.+", message.text):
             return True
         return False
 
@@ -132,3 +130,12 @@ class IsAdmin(BaseFilter):
             return True
         return False
 
+
+
+# class IsChapter(BaseFilter):
+#     """Фильтр сообщений вида /фраг 1 (до фиксированного значения 150 для этого бота)."""
+#     async def __call__(self, message: Message) -> bool:
+#         match_obj = fullmatch(r"/фраг (\d{1,3})", message.text)
+#         if match_obj and int(match_obj.group(1)) in range(1, 151):
+#             return True
+#         return False

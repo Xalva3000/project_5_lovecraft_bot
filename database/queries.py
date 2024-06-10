@@ -400,9 +400,9 @@ class AsyncQuery:
         async with async_session() as session:
             term, translation, definition = term_tpl
             session.add(Dictionary(term=term,
-                                      translation=translation,
-                                      definition=definition
-                                      ))
+                                   translation=translation,
+                                   definition=definition
+                                   ))
             await session.commit()
 
 

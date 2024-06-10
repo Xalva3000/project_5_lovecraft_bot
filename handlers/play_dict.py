@@ -5,7 +5,7 @@ from aiogram.types import CallbackQuery, Message
 
 from database.queries import AsyncQuery
 from database.temporary_info import usersdictplaycache
-from filters.filters import IsAnswer, IsDictPattern
+from filters.filters import IsAnswer, IsDictPattern, IsNewTermPattern
 from keyboards.dictionary_kb import (create_dictionary_answer_keyboard,
                                      create_dictionary_keyboard)
 from keyboards.return_menu_kb import create_return_menu_keyboard
@@ -30,6 +30,18 @@ async def process_dictionary_cancel(message: Message, state: FSMContext):
     await state.clear()
     await message.answer(text=LEXICON_dict["cancel"],
                          reply_markup=create_del_message_keyboard())
+
+
+@router.message(IsNewTermPattern())
+async def process_insert_user_term_no_state(message: Message):
+    """Хедлер принятия пользовательского термина по сообщению."""
+    if isinstance(message.text, str):
+        new_term = message.text.removeprefix('/nt ')
+
+        term_tpl = tuple(new_term.split("$$"))
+        await AsyncQuery.insert_term(term_tpl)
+        await message.answer(text=LEXICON_dict["add_success"],
+                             reply_markup=create_del_message_keyboard())
 
 
 @router.callback_query(F.data == "next_question")
