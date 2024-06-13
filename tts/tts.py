@@ -17,7 +17,7 @@ async def text_to_speech_book(text, fragment_id):
     tts.save(f"tts/book/{fragment_id}-tts.mp3")
 
 
-def text_to_speech_book_eng(text, page_id):
+async def text_to_speech_book_eng(text, page_id):
     tts = gtts.gTTS(
         text,
         lang="en",
