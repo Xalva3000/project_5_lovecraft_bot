@@ -399,9 +399,9 @@ class AsyncQuery:
         VALUES ({term}, {translation}, {definition});"""
         async with async_session() as session:
             term, translation, definition = term_tpl
-            session.add(Dictionary(term=term,
-                                   translation=translation,
-                                   definition=definition
+            session.add(Dictionary(term=term.capitalize(),
+                                   translation=translation.lower(),
+                                   definition=definition.capitalize()
                                    ))
             await session.commit()
 
