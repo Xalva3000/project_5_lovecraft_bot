@@ -5,7 +5,7 @@ from aiogram.types import CallbackQuery, FSInputFile, Message
 from aiogram.utils.chat_action import ChatActionSender
 
 from database.queries import AsyncQuery
-from filters.filters import IsPage, IsRatio, IsTTSBook, IsEngTranslation
+from filters.filters import IsPage, IsRatio, IsTTSBook, IsEngTranslation, IsEngTermRequest
 from keyboards.del_message_kb import create_del_message_keyboard
 from keyboards.pagination_kb import create_pagination_keyboard
 from lexicon.lexicon import LEXICON_reading_book, LEXICON_bookmarks
@@ -90,7 +90,7 @@ async def process_forward_press(callback: CallbackQuery, state: FSMContext):
 
 @router.callback_query(F.data == "backward")
 async def process_backward_press(callback: CallbackQuery, state: FSMContext):
-    """Хендлер нажатия кнопки вперед. Выводит предыдущую страницу."""
+    """Хендлер нажатия кнопки назад. Выводит предыдущую страницу."""
     await state.set_state(FSMStates.reading_book)
     user = await AsyncQuery.select_user(callback.from_user.id)
     max_page = await AsyncQuery.select_max_book_page()
@@ -153,6 +153,26 @@ async def process_cancel_message(message: Message, state: FSMContext):
     else:
         translation = LEXICON_reading_book['error']
     await message.answer(text=translation,
+                         reply_markup=create_del_message_keyboard())
+
+
+@router.message(IsEngTermRequest())
+async def process_cancel_message(message: Message):
+    """Хендлер команды /term, запрос на вывод. Во время чтения книги."""
+    answer = ''
+    if isinstance(message.text, str):
+        request = message.text.removeprefix('/term ')
+        rows = await AsyncQuery.select_term(request)
+        if len(rows) > 1:
+            answer = LEXICON_reading_book['multiple_results'] + f'({request})'
+        elif len(rows) == 1:
+            term = rows[0]
+            answer = f"{term.term} - {term.translation} - {term.definition}"
+        elif not rows:
+            answer = LEXICON_reading_book['no_term']
+    else:
+        answer = LEXICON_reading_book['error']
+    await message.answer(text=answer,
                          reply_markup=create_del_message_keyboard())
 
 

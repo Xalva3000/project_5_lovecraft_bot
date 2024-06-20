@@ -122,6 +122,14 @@ class IsNewTermPattern(BaseFilter):
         return False
 
 
+class IsEngTermRequest(BaseFilter):
+    """Фильтр запроса термина из БД"""
+    async def __call__(self, message: Message) -> bool:
+        if fullmatch(r"/term [a-zA-Z]+", message.text):
+            return True
+        return False
+
+
 class IsAdmin(BaseFilter):
     """Авторизация админа"""
     async def __call__(self, callback: CallbackQuery) -> bool:
@@ -129,6 +137,8 @@ class IsAdmin(BaseFilter):
         if callback.from_user.id == int(config_info.admin.admin_id):
             return True
         return False
+
+
 
 
 

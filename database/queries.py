@@ -175,53 +175,6 @@ class AsyncQuery:
             await session.execute(stmt)
             await session.commit()
 
-    # @staticmethod
-    # async def insert_book_fragments(book: dict[int:tuple]):
-    #     """INSERT INTO min_fragments (fragment_id, fragment)
-    #     VALUES ({key}, {value});"""
-    #     async with async_session() as session:
-    #         for key, value in book.items():
-    #             session.add(MinFragments(fragment_id=key, fragment=value))
-    #         await session.commit()
-
-    # @staticmethod
-    # async def select_book_fragment(fragment_num):
-    #     """SELECT *
-    #     FROM min_fragments
-    #     WHERE fragment_id = fragment_num;"""
-    #     async with async_session() as session:
-    #         result = await session.get(MinFragments, fragment_num)
-    #         return result.fragment
-    #
-    # @staticmethod
-    # async def select_fragment_id(page_id):
-    #     """SELECT fragment_id
-    #     FROM min_book
-    #     WHERE page_id = {page_id};"""
-    #     async with async_session() as session:
-    #         result = await session.get(MinBookOrm, page_id)
-    #         return result.fragment_id
-
-    # @staticmethod
-    # async def select_page_of_chapter(fragment_id):
-    #     """SELECT min(page_id)
-    #     FROM min_book
-    #     WHERE fragment_id = {fragment_id};"""
-    #     async with async_session() as session:
-    #         stmt = select(func.min(MinBookOrm.page_id)).where(MinBookOrm.fragment_id == fragment_id)
-    #         result = await session.execute(stmt)
-    #         return result.scalar()
-
-    # @staticmethod
-    # async def select_all_fragments():
-    #     """SELECT fragment
-    #     FROM min_fragments
-    #     ORDER BY fragment_id"""
-    #     # на данный момент не используется
-    #     async with async_session() as session:
-    #         stmt = select(MinFragments.fragment).order_by(MinFragments.fragment_id)
-    #         result = await session.execute(stmt)
-    #         return result.scalars().all()
 
     @staticmethod
     async def select_all_excerpt_ids():
@@ -387,9 +340,9 @@ class AsyncQuery:
         async with async_session() as session:
             for term, translation, definition in dct.values():
                 session.add(Dictionary(term=term,
-                                          translation=translation,
-                                          definition=definition
-                                          ))
+                                       translation=translation,
+                                       definition=definition
+                                       ))
             await session.commit()
 
     @staticmethod
@@ -404,6 +357,15 @@ class AsyncQuery:
                                    definition=definition.capitalize()
                                    ))
             await session.commit()
+
+    @staticmethod
+    async def select_term(request):
+        async with async_session() as session:
+            # request = f"%{request}%"
+            # stmt = select(Dictionary).filter(Dictionary.term.like(request))
+            stmt = select(Dictionary).filter_by(term=request.capitalize())
+            result = await session.execute(stmt)
+            return result.scalars().all()
 
 
     @staticmethod
@@ -454,3 +416,52 @@ class AsyncQuery:
         async with async_session() as session:
             session.add(Questionable(object=report_text))
             await session.commit()
+
+
+    # @staticmethod
+    # async def insert_book_fragments(book: dict[int:tuple]):
+    #     """INSERT INTO min_fragments (fragment_id, fragment)
+    #     VALUES ({key}, {value});"""
+    #     async with async_session() as session:
+    #         for key, value in book.items():
+    #             session.add(MinFragments(fragment_id=key, fragment=value))
+    #         await session.commit()
+
+    # @staticmethod
+    # async def select_book_fragment(fragment_num):
+    #     """SELECT *
+    #     FROM min_fragments
+    #     WHERE fragment_id = fragment_num;"""
+    #     async with async_session() as session:
+    #         result = await session.get(MinFragments, fragment_num)
+    #         return result.fragment
+    #
+    # @staticmethod
+    # async def select_fragment_id(page_id):
+    #     """SELECT fragment_id
+    #     FROM min_book
+    #     WHERE page_id = {page_id};"""
+    #     async with async_session() as session:
+    #         result = await session.get(MinBookOrm, page_id)
+    #         return result.fragment_id
+
+    # @staticmethod
+    # async def select_page_of_chapter(fragment_id):
+    #     """SELECT min(page_id)
+    #     FROM min_book
+    #     WHERE fragment_id = {fragment_id};"""
+    #     async with async_session() as session:
+    #         stmt = select(func.min(MinBookOrm.page_id)).where(MinBookOrm.fragment_id == fragment_id)
+    #         result = await session.execute(stmt)
+    #         return result.scalar()
+
+    # @staticmethod
+    # async def select_all_fragments():
+    #     """SELECT fragment
+    #     FROM min_fragments
+    #     ORDER BY fragment_id"""
+    #     # на данный момент не используется
+    #     async with async_session() as session:
+    #         stmt = select(MinFragments.fragment).order_by(MinFragments.fragment_id)
+    #         result = await session.execute(stmt)
+    #         return result.scalars().all()

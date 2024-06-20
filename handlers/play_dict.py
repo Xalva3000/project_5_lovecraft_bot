@@ -39,6 +39,11 @@ async def process_insert_user_term_no_state(message: Message):
         new_term = message.text.removeprefix('/nt ')
 
         term_tpl = tuple(new_term.split("$$"))
+        rows = await AsyncQuery.select_term(term_tpl[0])
+        if rows:
+            await message.answer(text=LEXICON_dict["term_already_exists"],
+                                 reply_markup=create_del_message_keyboard())
+            return
         await AsyncQuery.insert_term(term_tpl)
         await message.answer(text=LEXICON_dict["add_success"],
                              reply_markup=create_del_message_keyboard())
@@ -100,7 +105,7 @@ async def process_add_term_cancel(message: Message, state: FSMContext):
 
 @router.message(IsDictPattern(), StateFilter(FSMStates.adding_term))
 async def process_insert_user_term(message: Message, state: FSMContext):
-    """Хедлер принятия пользовательского термина. Если введенное пользователем
+    """Хендлер принятия пользовательского термина. Если введенное пользователем
     сообщение соответствует шаблону новых терминов, то термин добавляется в БД,
     и выводится сообщение об успешно добавлении"""
     await state.clear()
