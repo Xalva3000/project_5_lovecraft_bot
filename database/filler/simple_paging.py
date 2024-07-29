@@ -20,7 +20,7 @@ book: dict[int, str] = {}
 PAGE_SIZE = 1050
 book_path = "books/lovecraft_book.txt"
 
-# Дополните эту функцию, согласно условию задачи
+
 def prepare_book(path: str) -> None:
     indent = 0
     count = 1
