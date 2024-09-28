@@ -6,7 +6,8 @@ from random import sample, randint
 async def load_answers(user_id: int) -> str:
     """Загружаем вопрос и варианты ответов в кэш,
     возвращает вопрос(текст объяснения верного термина)"""
-
+    if user_id in usersdictplaycache:
+        del usersdictplaycache[user_id]
     all_ids = await AsyncQuery.select_all_dict_ids()
     if len(all_ids) < 4:
         return None
