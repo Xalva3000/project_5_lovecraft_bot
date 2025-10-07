@@ -34,7 +34,7 @@ async def process_voice_letters(callback: CallbackQuery, bot: Bot):
     audio = FSInputFile(
         path=f"tts/{callback.from_user.id}-tts.mp3", filename=f"{letter.letter[:13]}.mp3"
     )
-    async with ChatActionSender.upload_document(chat_id=callback.message.chat.id):
+    async with ChatActionSender.upload_document(bot=bot, chat_id=callback.message.chat.id):
         await bot.send_audio(callback.message.chat.id,
                              audio=audio,
                              reply_markup=create_del_audio_keyboard()

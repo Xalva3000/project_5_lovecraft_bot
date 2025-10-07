@@ -136,7 +136,7 @@ async def process_voice_book(callback: CallbackQuery, bot: Bot):
         path=f"tts/book/{page_id}-tts.mp3",
         filename=f"{page_text[:13]}.mp3"
     )
-    async with ChatActionSender.upload_document(chat_id=callback.message.chat.id):
+    async with ChatActionSender.upload_document(bot=bot, chat_id=callback.message.chat.id):
         await bot.send_audio(
             callback.message.chat.id,
             audio=audio,

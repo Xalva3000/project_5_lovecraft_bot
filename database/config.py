@@ -27,7 +27,7 @@ class Settings:
 if os_name == 'nt':
     env_path = r"C:\i\project_5_kabbot\.env"
 elif os_name == 'posix':
-    env_path = "/home/kabbot/kabbot/project_5_kabbot/.env"
+    env_path = "/home/kabbot/lovecraft_bot/.env"
 else:
     raise ValueError('Unknown OS data. No path to .env file.')
 
